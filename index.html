@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spotify Preview Test</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    button, audio {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Spotify Track Preview</h1>
+  <div id="info">Loading...</div>
+  <audio id="player" controls autoplay></audio>
+
+  <script type="module" src="spotify-preview.mjs"></script>
+</body>
+</html>
