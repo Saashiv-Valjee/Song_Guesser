@@ -1,5 +1,4 @@
-.env
-QR/*
-pdfs/*
 cards/*
-*.pdf
+pdfs/*
+.env
+deezer_notebook.ipynb
