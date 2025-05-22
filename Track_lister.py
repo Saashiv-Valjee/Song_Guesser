@@ -44,7 +44,7 @@ def get_artist_top_tracks(artist_name, artist_id, genre="Metal", limit=5, out_pa
 # === Main Logic ===
 #genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo"]
 SONGS_PER_ARTIST = 5
-genres = ["Heather"]
+genres = ["Saashiv"]
 for genre in genres:
     artist_file = f"artists/{genre}.txt".replace(" ", "_")
     out_path = f"songs/{genre}.txt".replace(" ", "_")

@@ -111,6 +111,15 @@
     const player = document.getElementById("player");
     const button = document.getElementById("treble-button");
     const circles = document.getElementById("circle-container");
+    function setRandomPulseColors() {
+    const pulses = document.querySelectorAll('.pulse');
+    pulses.forEach(pulse => {
+      const hue = Math.floor(Math.random() * 360); // Random hue from 0–359
+      pulse.style.background = `hsla(${hue}, 100%, 50%, 0.2)`; // vibrant color, soft alpha
+      });
+    }
+
+    setRandomPulseColors(); // Call once on page load
 
     let isPlaying = false;
 

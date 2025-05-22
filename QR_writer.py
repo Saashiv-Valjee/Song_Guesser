@@ -156,7 +156,7 @@ def save_cards_as_pdf(output_pdf=f"{GENRE}_all_cards.pdf"):
 
 # Constants
 #genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo"]
-genres = ["Heather"]
+genres = ["Saashiv"]
 for GENRE in genres:
     GENRE = GENRE.replace(" ", "_")
     SIZE = 1063
@@ -171,7 +171,7 @@ for GENRE in genres:
     else:
         COLOR = (220, 220, 220)
     QR_SIZE = 600
-    LOCAL_URL = "http://192.168.0.72:8000/index.html?id="
+    LOCAL_URL = "https://song-guesser.onrender.com/index.html?id="
     card_PATH = f"cards/{GENRE}"
     os.makedirs(f'{card_PATH}/front', exist_ok=True)
     os.makedirs(f'{card_PATH}/back', exist_ok=True)
