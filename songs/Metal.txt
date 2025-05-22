@@ -1,90 +1,60 @@
-Black Sabbath - Paranoid  
-Led Zeppelin - Immigrant Song  
-Deep Purple - Smoke on the Water  
-Judas Priest - Hell Bent for Leather  
-UFO - Rock Bottom  
-AC/DC - Highway to Hell  
-Motorhead - Overkill  
-Blue Oyster Cult - (Don't Fear) The Reaper  
-Rainbow - Stargazer  
-Scorpions - In Trance  
-Thin Lizzy - The Boys Are Back in Town  
-KISS - Detroit Rock City  
-Ted Nugent - Cat Scratch Fever  
-Nazareth - Hair of the Dog  
-Van Halen - Runnin' with the Devil  
-Iron Maiden - The Number of the Beast  
-Metallica - Master of Puppets  
-Slayer - Raining Blood  
-Megadeth - Peace Sells  
-Anthrax - Madhouse  
-Dio - Holy Diver  
-Ozzy Osbourne - Crazy Train  
-Motley Crue - Shout at the Devil  
-Twisted Sister - We're Not Gonna Take It  
-Pantera - Cowboys from Hell  
-Queensrÿche - Eyes of a Stranger  
-Venom - Black Metal  
-Mercyful Fate - Evil  
-Manowar - Hail and Kill  
-Celtic Frost - Into the Crypts of Rays  
-Nirvana - Heart-Shaped Box  
-Tool - Sober  
-Pantera - Walk  
-Sepultura - Roots Bloody Roots  
-Korn - Blind  
-Marilyn Manson - The Beautiful People  
-Deftones - My Own Summer (Shove It)  
-Nine Inch Nails - March of the Pigs  
-Slipknot - Wait and Bleed  
-Soundgarden - Black Hole Sun  
-System of a Down - Sugar  
-Rage Against the Machine - Killing in the Name  
-Alice in Chains - Would?  
-Machine Head - Davidian  
-Type O Negative - Black No. 1  
-My Chemical Romance - I'm Not Okay (I Promise)  
-Fall Out Boy - Sugar, We're Goin Down  
-The Used - The Taste of Ink  
-Slipknot - Duality  
-Avenged Sevenfold - Bat Country  
-Killswitch Engage - My Curse  
-Bullet for My Valentine - Tears Don't Fall  
-System of a Down - Chop Suey!  
-Linkin Park - In the End  
-Lamb of God - Laid to Rest  
-Mastodon - Blood and Thunder  
-Paramore - Misery Business  
-Underoath - Writing on the Walls  
-Bring Me the Horizon - Pray for Plagues  
-Trivium - Pull Harder on the Strings of Your Martyr  
-Bring Me the Horizon - Can You Feel My Heart  
-Architects - Doomsday  
-Ghost - Square Hammer  
-Motionless in White - Voices  
-Parkway Drive - Vice Grip  
-Gojira - Stranded  
-Deafheaven - Dream House  
-Slipknot - Unsainted  
-Behemoth - Blow Your Trumpets Gabriel  
-Fever 333 - Burn It  
-Tool - Fear Inoculum  
-Code Orange - Forever  
-BMTH - Throne  
-While She Sleeps - Silence Speaks  
-Power Trip - Executioner’s Tax  
-Spiritbox - Holy Roller  
-Lorna Shore - To the Hellfire  
-Turnstile - BLACKOUT  
-Bring Me the Horizon - Teardrops  
-Architects - Animals  
-Loathe - Two-Way Mirror  
-Code Orange - Sulfur Surrounding  
-Ghost - Call Me Little Sunshine  
-Sleep Token - The Summoning  
-Bad Omens - Just Pretend  
-Gojira - Another World  
-Wage War - Circle the Drain  
-Poppy - BLOODMONEY  
-Knocked Loose - Deep in the Willow  
-Vended - Burn My Misery  
+Metallica - Whiskey In The Jar
+Metallica - One
+Metallica - Fuel
+Metallica - The Day That Never Comes
+Metallica - I Disappear
+Black Sabbath - Paranoid
+Black Sabbath - War Pigs
+Black Sabbath - Iron Man
+Black Sabbath - Planet Caravan
+Black Sabbath - N.I.B.
+Slipknot - Duality
+Slipknot - Psychosocial
+Slipknot - Before I Forget
+Slipknot - Wait and Bleed
+Slipknot - Spit It Out
+Megadeth - Symphony Of Destruction
+Megadeth - Tornado Of Souls
+Megadeth - Dystopia
+Megadeth - Conquer Or Die
+Megadeth - Holy Wars...The Punishment Due
+Pantera - Walk
+Pantera - Cowboys from Hell
+Pantera - Cemetery Gates
+Pantera - Floods
+Pantera - Domination
+Ozzy Osbourne - No More Tears
+Ozzy Osbourne - Crazy Train
+Ozzy Osbourne - Hellraiser (30th Anniversary Edition)
+Ozzy Osbourne - Bark at the Moon
+Ozzy Osbourne - Mama, I'm Coming Home
+Deftones - My Own Summer (Shove It)
+Deftones - Change (In the House of Flies)
+Deftones - Be Quiet and Drive (Far Away)
+Deftones - Cherry Waves
+Deftones - Rosemary
+System Of A Down - Chop Suey!
+System Of A Down - Toxicity
+System Of A Down - Lonely Day
+System Of A Down - B.Y.O.B.
+System Of A Down - Aerials
+Mötley Crüe - Kickstart My Heart
+Mötley Crüe - Girls, Girls, Girls
+Mötley Crüe - Home Sweet Home
+Mötley Crüe - Shout at the Devil
+Mötley Crüe - Dr. Feelgood
+Bring Me The Horizon - Can You Feel My Heart
+Bring Me The Horizon - Throne
+Bring Me The Horizon - Kingslayer (feat. BABYMETAL)
+Bring Me The Horizon - Drown
+Bring Me The Horizon - MANTRA
+Bullet For My Valentine - Tears Don't Fall
+Bullet For My Valentine - All These Things I Hate (Revolve Around Me)
+Bullet For My Valentine - Your Betrayal
+Bullet For My Valentine - You Want a Battle? (Here's a War)
+Bullet For My Valentine - Hearts Burst into Fire
+Avenge Sevenfold - Hail to the King
+Avenge Sevenfold - Nightmare
+Avenge Sevenfold - Afterlife
+Avenge Sevenfold - Shepherd of Fire
+Avenge Sevenfold - A Little Piece of Heaven
