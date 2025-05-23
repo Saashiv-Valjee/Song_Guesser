@@ -30,7 +30,7 @@
     .button-wrapper {
       position: relative;
       width: clamp(15rem, 30vw, 25rem);
-      height: clamp(20rem, 45vh, 35rem);
+      aspect-ratio: 1 / 1;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -59,7 +59,7 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
+      aspect-ratio: 1 / 1;
       pointer-events: none;
       display: flex;
       justify-content: center;
@@ -70,16 +70,18 @@
     .pulse {
       position: absolute;
       width: 100%;
-      height: 100%;
+      aspect-ratio: 1 / 1;
       border-radius: 50%;
-      opacity: 0;
-      animation: pulse 2.5s ease-out infinite;
+      animation: pulse 3s ease-out infinite;
     }
 
-    .pulse:nth-child(2) { animation-delay: 0.5s; }
-    .pulse:nth-child(3) { animation-delay: 1.0s; }
-    .pulse:nth-child(4) { animation-delay: 1.5s; }
-    .pulse:nth-child(5) { animation-delay: 2.0s; }
+    /* More frequent staggered delays */
+    .pulse:nth-child(1) { animation-delay: -1.5s; }
+    .pulse:nth-child(2) { animation-delay: -1.2s; }
+    .pulse:nth-child(3) { animation-delay: -0.9s; }
+    .pulse:nth-child(4) { animation-delay: -0.6s; }
+    .pulse:nth-child(5) { animation-delay: -0.3s; }
+    .pulse:nth-child(6) { animation-delay: 0s; }
 
     @keyframes pulse {
       0% {
@@ -94,8 +96,8 @@
 
     #timer {
       position: absolute;
-      top: -8rem;
-      font-size: clamp(3rem, 7vw, 5rem);
+      top: -7rem;
+      font-size: clamp(2.5rem, 6vw, 4rem);
       font-weight: bold;
       color: rgb(204, 202, 202);
       text-shadow: 0 0 5px rgba(255,255,255,0.3);
@@ -120,6 +122,7 @@
       <div class="pulse"></div>
       <div class="pulse"></div>
       <div class="pulse"></div>
+      <div class="pulse"></div>
     </div>
 
     <button id="treble-button">
@@ -136,18 +139,22 @@
     const button = document.getElementById("treble-button");
     const circles = document.getElementById("circle-container");
     const timerDisplay = document.getElementById("timer");
-    const pulses = document.querySelectorAll(".pulse");
 
     function getRandomHSLA() {
       const hue = Math.floor(Math.random() * 360);
       return `hsla(${hue}, 100%, 50%, 0.2)`;
     }
 
+    function setRandomColorOnIteration(pulse) {
+      pulse.addEventListener("animationiteration", () => {
+        pulse.style.background = getRandomHSLA();
+      });
+    }
+
+    const pulses = document.querySelectorAll(".pulse");
     pulses.forEach(p => {
       p.style.background = getRandomHSLA();
-      p.addEventListener("animationiteration", () => {
-        p.style.background = getRandomHSLA();
-      });
+      setRandomColorOnIteration(p);
     });
 
     let isPlaying = false;
