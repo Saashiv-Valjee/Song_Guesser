@@ -5,32 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Now Playing</title>
   <style>
-    :root {
-      font-size: 16px; /* base for rem */
+    html {
+      font-size: 16px;
     }
 
     body {
       background: #000;
       margin: 0;
-      font-family: 'YourCustomFont', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       overflow: hidden;
+      font-family: 'Montserrat', sans-serif;
     }
 
-    /* OPTIONAL: include your font */
     @font-face {
-      font-family: 'YourCustomFont';
-      src: url('assets/Website/YourCustomFont.ttf') format('truetype');
+      font-family: 'Montserrat';
+      src: url("assets/Website/Montserrat-Bold.ttf") format("truetype");
+      font-weight: bold;
     }
 
     .button-wrapper {
       position: relative;
-      width: 30rem;
-      height: 45rem;
+      width: clamp(15rem, 30vw, 25rem);
+      height: clamp(20rem, 45vh, 35rem);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -42,9 +42,9 @@
       background: none;
       border: none;
       padding: 0;
+      margin-top: clamp(1rem, 4vh, 2.5rem);
       cursor: pointer;
       z-index: 1;
-      margin-top: 6rem; /* moved clef down slightly */
     }
 
     #treble-button img {
@@ -72,7 +72,6 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
       animation: pulse 2s ease-out infinite;
     }
 
@@ -83,23 +82,29 @@
     .pulse:nth-child(8) { animation-delay: 0s; }
 
     @keyframes pulse {
-      0% { transform: scale(0); opacity: 1; }
-      100% { transform: scale(2.5); opacity: 0; }
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2.5);
+        opacity: 0;
+      }
     }
 
     #timer {
       position: absolute;
-      top: -5rem;
-      font-size: 5rem;
+      top: -6rem; 
+      font-size: clamp(2rem, 6vw, 4rem);
       font-weight: bold;
       color: white;
-      text-shadow: 0 0 0.3rem rgba(255, 255, 255, 0.3);
+      text-shadow: 0 0 5px rgba(255,255,255,0.3);
     }
 
     #badge {
       position: absolute;
-      bottom: 5rem;
-      font-size: 1.2rem;
+      bottom: 3rem;
+      font-size: 1rem;
       color: rgba(255, 255, 255, 0.5);
     }
   </style>
@@ -119,6 +124,7 @@
       <div class="pulse"></div>
       <div class="pulse"></div>
     </div>
+
     <button id="treble-button">
       <img src="assets/Website/upscaled_clef.png" alt="Play/Pause" />
     </button>
@@ -134,14 +140,22 @@
     const circles = document.getElementById("circle-container");
     const timerDisplay = document.getElementById("timer");
 
-    function setRandomPulseColors() {
-      document.querySelectorAll('.pulse').forEach(pulse => {
-        const hue = Math.floor(Math.random() * 360);
-        pulse.style.background = `hsla(${hue}, 100%, 50%, 0.2)`;
+    function getRandomHSLA() {
+      const hue = Math.floor(Math.random() * 360);
+      return `hsla(${hue}, 100%, 50%, 0.2)`;
+    }
+
+    function setRandomColorOnIteration(pulse) {
+      pulse.addEventListener("animationiteration", () => {
+        pulse.style.background = getRandomHSLA();
       });
     }
 
-    setRandomPulseColors();
+    const pulses = document.querySelectorAll(".pulse");
+    pulses.forEach(p => {
+      p.style.background = getRandomHSLA();
+      setRandomColorOnIteration(p);
+    });
 
     let isPlaying = false;
     let countdown = 30;
@@ -152,7 +166,6 @@
     }
 
     function startCountdown() {
-      if (countdown <= 0 || countdown === 30) countdown = 30;
       updateTimerDisplay();
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -169,18 +182,25 @@
       clearInterval(timerInterval);
     }
 
-    const BASE_URL = location.hostname.includes("localhost") ? "http://localhost:5000" : "https://song-guesser.onrender.com";
+    const BASE_URL = window.location.hostname.includes("localhost") || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:5000"
+      : "https://song-guesser.onrender.com";
 
     if (trackId) {
       fetch(`${BASE_URL}/deezer-track?id=${trackId}`)
         .then(res => res.json())
         .then(data => {
-          if (data.preview) player.src = data.preview;
+          if (!data.preview) return;
+          player.src = data.preview;
         });
     }
 
     button.addEventListener("click", () => {
-      isPlaying ? player.pause() : player.play();
+      if (isPlaying) {
+        player.pause();
+      } else {
+        player.play();
+      }
     });
 
     player.addEventListener("play", () => {
