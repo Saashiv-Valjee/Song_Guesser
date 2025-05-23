@@ -72,14 +72,14 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      animation: pulse 2s ease-out infinite;
+      opacity: 0;
+      animation: pulse 2.5s ease-out infinite;
     }
 
-    .pulse:nth-child(4) { animation-delay: -0.8s; }
-    .pulse:nth-child(5) { animation-delay: -0.6s; }
-    .pulse:nth-child(6) { animation-delay: -0.4s; }
-    .pulse:nth-child(7) { animation-delay: -0.2s; }
-    .pulse:nth-child(8) { animation-delay: 0s; }
+    .pulse:nth-child(2) { animation-delay: 0.5s; }
+    .pulse:nth-child(3) { animation-delay: 1.0s; }
+    .pulse:nth-child(4) { animation-delay: 1.5s; }
+    .pulse:nth-child(5) { animation-delay: 2.0s; }
 
     @keyframes pulse {
       0% {
@@ -94,10 +94,10 @@
 
     #timer {
       position: absolute;
-      top: -6rem; 
-      font-size: clamp(2rem, 6vw, 4rem);
+      top: -8rem;
+      font-size: clamp(3rem, 7vw, 5rem);
       font-weight: bold;
-      color: white;
+      color: rgb(204, 202, 202);
       text-shadow: 0 0 5px rgba(255,255,255,0.3);
     }
 
@@ -120,9 +120,6 @@
       <div class="pulse"></div>
       <div class="pulse"></div>
       <div class="pulse"></div>
-      <div class="pulse"></div>
-      <div class="pulse"></div>
-      <div class="pulse"></div>
     </div>
 
     <button id="treble-button">
@@ -139,22 +136,18 @@
     const button = document.getElementById("treble-button");
     const circles = document.getElementById("circle-container");
     const timerDisplay = document.getElementById("timer");
+    const pulses = document.querySelectorAll(".pulse");
 
     function getRandomHSLA() {
       const hue = Math.floor(Math.random() * 360);
       return `hsla(${hue}, 100%, 50%, 0.2)`;
     }
 
-    function setRandomColorOnIteration(pulse) {
-      pulse.addEventListener("animationiteration", () => {
-        pulse.style.background = getRandomHSLA();
-      });
-    }
-
-    const pulses = document.querySelectorAll(".pulse");
     pulses.forEach(p => {
       p.style.background = getRandomHSLA();
-      setRandomColorOnIteration(p);
+      p.addEventListener("animationiteration", () => {
+        p.style.background = getRandomHSLA();
+      });
     });
 
     let isPlaying = false;
