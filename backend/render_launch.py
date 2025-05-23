@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, send_from_directory, request
 from flask_cors import CORS
 import os
 import requests
@@ -13,11 +13,10 @@ def deezer_track():
     r = requests.get(url)
     return r.json()
 
-# Serve frontend static files and index fallback
-@app.route("/", defaults={"path": ""})
+@app.route("/", defaults={"path": "index.html"})
 @app.route("/<path:path>")
 def serve_frontend(path):
-    if path != "" and os.path.exists(os.path.join("frontend", path)):
-        return send_from_directory("frontend", path)
-    else:
-        return send_from_directory("frontend", "index.html")
+    try:
+        return send_from_directory(app.static_folder, path)
+    except:
+        return send_from_directory(app.static_folder, "index.html")
