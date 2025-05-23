@@ -155,12 +155,11 @@ def save_cards_as_pdf(output_pdf=f"{GENRE}_all_cards.pdf"):
 
 
 # Constants
-#genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo"]
-genres = ["Saashiv"]
+genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo", "Saashiv", "Heather"]
 for GENRE in genres:
     GENRE = GENRE.replace(" ", "_")
     SIZE = 1063
-    ASSETS_DIR = f"frontend/assets/{GENRE}"
+    ASSETS_DIR = f"../data/assets/{GENRE}"
     FONT_PATH = os.path.join(ASSETS_DIR, f"{GENRE}.ttf")
     BG_PATH = os.path.join(ASSETS_DIR, f"{GENRE}.jpg")
     
@@ -172,12 +171,12 @@ for GENRE in genres:
         COLOR = (220, 220, 220)
     QR_SIZE = 600
     LOCAL_URL = "https://song-guesser.onrender.com/index.html?id="
-    card_PATH = f"data/cards/{GENRE}"
+    card_PATH = f"../data/cards/{GENRE}"
     os.makedirs(f'{card_PATH}/front', exist_ok=True)
     os.makedirs(f'{card_PATH}/back', exist_ok=True)
 
     clear_card_dirs()
-    songs = parse_songs(f"data/songs/{GENRE}.txt")
+    songs = parse_songs(f"../data/songs/{GENRE}.txt")
     random.shuffle(songs)
 
     for i, (artist, title) in enumerate(songs):
@@ -195,5 +194,12 @@ for GENRE in genres:
         draw_text_card(track_title, artist, year, front_path, GENRE)
         draw_qr_card(deezer_id, back_path, GENRE)
 
+        # Save the URL with song metadata
+        os.makedirs("../data/urls", exist_ok=True)
+        url = f"{LOCAL_URL}{deezer_id}"
+        with open(f"../data/urls/{GENRE}.txt", "a", encoding="utf-8") as url_file:
+            url_file.write(f"{track_title} by {artist} in {year}: {url}\n")
+
         print(f"SELECTED: {track_title} {artist} {year}\n")
-    save_cards_as_pdf(f"data/pdfs/{GENRE}_all_cards.pdf")
+
+    save_cards_as_pdf(f"../data/pdfs/{GENRE}_all_cards.pdf")
