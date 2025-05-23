@@ -5,22 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Now Playing</title>
   <style>
+    :root {
+      font-size: 16px; /* base for rem */
+    }
+
     body {
       background: #000;
       margin: 0;
+      font-family: 'YourCustomFont', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       overflow: hidden;
-      font-family: sans-serif;
+    }
+
+    /* OPTIONAL: include your font */
+    @font-face {
+      font-family: 'YourCustomFont';
+      src: url('assets/Website/YourCustomFont.ttf') format('truetype');
     }
 
     .button-wrapper {
       position: relative;
-      width: 30vw;
-      height: 45vh;
+      width: 30rem;
+      height: 45rem;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -34,6 +44,7 @@
       padding: 0;
       cursor: pointer;
       z-index: 1;
+      margin-top: 6rem; /* moved clef down slightly */
     }
 
     #treble-button img {
@@ -53,18 +64,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transform: rotate(90deg); /* Rotate pulses 90 degrees */
-    }
-    #timer {
-      position: absolute;
-      top: -5vh;
-      font-size: 3vw;
-      color: white;
-      text-shadow: 0 0 5px rgba(255,255,255,0.3);
-    }
-
-    #treble-button {
-      margin-top: 4vh; /* Move clef down */
+      transform: rotate(90deg);
     }
 
     .pulse {
@@ -82,22 +82,24 @@
     .pulse:nth-child(7) { animation-delay: -0.2s; }
     .pulse:nth-child(8) { animation-delay: 0s; }
 
-
     @keyframes pulse {
-      0% {
-        transform: scale(0);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(2.5);
-        opacity: 0;
-      }
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    #timer {
+      position: absolute;
+      top: -5rem;
+      font-size: 5rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 0.3rem rgba(255, 255, 255, 0.3);
     }
 
     #badge {
       position: absolute;
-      bottom: 5vh;
-      font-size: 1vw;
+      bottom: 5rem;
+      font-size: 1.2rem;
       color: rgba(255, 255, 255, 0.5);
     }
   </style>
@@ -117,7 +119,6 @@
       <div class="pulse"></div>
       <div class="pulse"></div>
     </div>
-
     <button id="treble-button">
       <img src="assets/Website/upscaled_clef.png" alt="Play/Pause" />
     </button>
@@ -131,30 +132,27 @@
     const player = document.getElementById("player");
     const button = document.getElementById("treble-button");
     const circles = document.getElementById("circle-container");
+    const timerDisplay = document.getElementById("timer");
+
     function setRandomPulseColors() {
-    const pulses = document.querySelectorAll('.pulse');
-    pulses.forEach(pulse => {
-      const hue = Math.floor(Math.random() * 360); // Random hue from 0–359
-      pulse.style.background = `hsla(${hue}, 100%, 50%, 0.2)`; // vibrant color, soft alpha
+      document.querySelectorAll('.pulse').forEach(pulse => {
+        const hue = Math.floor(Math.random() * 360);
+        pulse.style.background = `hsla(${hue}, 100%, 50%, 0.2)`;
       });
     }
 
-    setRandomPulseColors(); // Call once on page load
+    setRandomPulseColors();
 
     let isPlaying = false;
     let countdown = 30;
     let timerInterval = null;
-
-    const timerDisplay = document.getElementById("timer");
 
     function updateTimerDisplay() {
       timerDisplay.textContent = `00:${countdown.toString().padStart(2, "0")}`;
     }
 
     function startCountdown() {
-      if (countdown <= 0 || countdown === 30) {
-        countdown = 30; // Only reset if it's starting fresh
-      }
+      if (countdown <= 0 || countdown === 30) countdown = 30;
       updateTimerDisplay();
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -162,7 +160,7 @@
         updateTimerDisplay();
         if (countdown <= 0) {
           clearInterval(timerInterval);
-          player.pause(); // auto-pause when timer hits zero
+          player.pause();
         }
       }, 1000);
     }
@@ -171,25 +169,18 @@
       clearInterval(timerInterval);
     }
 
-    const BASE_URL = window.location.hostname.includes("localhost") || window.location.hostname === "127.0.0.1"
-      ? "http://localhost:5000"
-      : "https://song-guesser.onrender.com"; // Replace with your actual Render URL after deploying
+    const BASE_URL = location.hostname.includes("localhost") ? "http://localhost:5000" : "https://song-guesser.onrender.com";
 
     if (trackId) {
       fetch(`${BASE_URL}/deezer-track?id=${trackId}`)
         .then(res => res.json())
         .then(data => {
-          if (!data.preview) return;
-          player.src = data.preview;
+          if (data.preview) player.src = data.preview;
         });
     }
 
     button.addEventListener("click", () => {
-      if (isPlaying) {
-        player.pause();
-      } else {
-        player.play();
-      }
+      isPlaying ? player.pause() : player.play();
     });
 
     player.addEventListener("play", () => {
@@ -203,12 +194,11 @@
       circles.style.display = "none";
       stopCountdown();
     });
-    
+
     player.addEventListener("ended", () => {
       countdown = 30;
       updateTimerDisplay();
     });
-
 
     circles.style.display = "none";
   </script>
