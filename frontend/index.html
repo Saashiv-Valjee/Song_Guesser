@@ -46,7 +46,7 @@
       cursor: pointer;
       z-index: 1;
     }
-
+    
     #treble-button img {
       width: 100%;
       height: 100%;
@@ -125,6 +125,21 @@
     <button id="treble-button">
       <img src="assets/Website/upscaled_clef.png" alt="Play/Pause" />
     </button>
+    <button id="random-button" style="
+      margin-top: 2rem;
+      background: #444;
+      color: white;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      position: absolute;
+      bottom: -4rem;
+    ">
+      Play Random Song
+    </button>
+
   </div>
 
   <div id="badge">Powered by Deezer</div>
@@ -214,6 +229,52 @@
     });
 
     circles.style.display = "none";
+    const randomButton = document.getElementById("random-button");
+
+    randomButton.addEventListener("click", () => {
+      fetch(`${BASE_URL}/random-url`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.id) {
+            // Push new URL (but stay on same page)
+            window.history.pushState({}, "", `?id=${data.id}`);
+
+            // Ensure a proper reset state
+            player.pause();
+            player.removeAttribute("src"); // <-- reset source explicitly
+            player.load();                 // <-- ensure it clears the buffer
+            isPlaying = false;
+            circles.style.display = "none";
+            stopCountdown();
+
+            countdown = 30;
+            updateTimerDisplay();
+
+            fetch(`${BASE_URL}/deezer-track?id=${data.id}`)
+              .then(res => res.json())
+              .then(track => {
+                if (!track.preview) return;
+                player.src = track.preview;
+              });
+
+
+            fetch(`${BASE_URL}/deezer-track?id=${data.id}`)
+              .then(res => res.json())
+              .then(track => {
+                if (!track.preview) return;
+                player.src = track.preview;
+              });
+          } else {
+            alert("No random song found.");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Failed to fetch random song.");
+        });
+    });
+
+
   </script>
 </body>
 </html>
