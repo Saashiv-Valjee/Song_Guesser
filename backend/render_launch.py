@@ -3,9 +3,12 @@ from flask import Flask, send_from_directory, request, jsonify
 from flask_cors import CORS
 import requests
 import random
+from pathlib import Path
+
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 FRONTEND_FOLDER = os.path.join(BASE_DIR, "../frontend")
+BACKEND_FOLDER = os.path.join(BASE_DIR, "../backend")
 
 app = Flask(__name__, static_folder=FRONTEND_FOLDER, static_url_path="")
 CORS(app)
@@ -28,48 +31,140 @@ def serve_frontend(path):
 
 @app.route("/random-url")
 def random_url():
-    print("📡 /random-url endpoint was hit (FIRST LINE MODE)", flush=True)
+    print("📡 /random-url endpoint was hit (SAMPLING MODE)", flush=True)
     playlist = request.args.get("playlist", "all").strip()
     print(f"🔍 Requested playlist: {playlist}", flush=True)
 
-    # Normalize playlist name
+    # Normalize filename
     if playlist.lower() != "all" and not playlist.lower().endswith(".txt"):
         playlist += ".txt"
 
+    # Locate directory
     url_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "urls"))
     if not os.path.exists(url_dir):
-        return jsonify({"error": f"URL directory not found: {url_dir}"}), 404
+        return jsonify({"error": "URL directory not found"}), 404
 
-    # Determine actual file
+    # Determine playlist file
     if playlist.lower() == "all":
         txt_files = [f for f in os.listdir(url_dir) if f.endswith(".txt")]
         if not txt_files:
-            return jsonify({"error": "No playlists available."}), 404
-        chosen_file = txt_files[0]
+            return jsonify({"error": "No playlist files found"}), 404
+        chosen_file = random.choice(txt_files)
     else:
         playlist_path = os.path.join(url_dir, playlist)
         if not os.path.isfile(playlist_path):
-            return jsonify({"error": f"Playlist not found: {playlist}"}), 404
+            return jsonify({"error": f"Playlist file not found: {playlist}"}), 404
         chosen_file = playlist
 
-    # Read first valid song line
+    print(f"📁 Selected playlist file: {chosen_file}", flush=True)
+
+    # Reservoir sampling: pick one valid line
     selected_url = None
     with open(os.path.join(url_dir, chosen_file), encoding="utf-8") as f:
-        for line in f:
-            if "http" in line and "?id=" in line:
+        for i, line in enumerate(f, start=1):
+            if "http" not in line or "?id=" not in line:
+                continue
+            if random.random() < 1 / i:
                 selected_url = line.strip()
-                break
 
     if not selected_url:
-        return jsonify({"error": "No valid Deezer URL in file."}), 404
+        return jsonify({"error": "No valid Deezer URLs in file"}), 404
 
     try:
         raw_url = selected_url.split(": ")[-1].strip()
         deezer_id = raw_url.split("?id=")[-1]
-        print(f"🎶 Loaded: {selected_url} → ID: {deezer_id}", flush=True)
+        print(f"🎶 Sampled: {selected_url} → ID: {deezer_id}", flush=True)
         return jsonify({"id": deezer_id})
     except Exception as e:
-        return jsonify({"error": f"Error parsing Deezer ID: {e}"}), 500
+        return jsonify({"error": f"Failed to parse Deezer ID: {e}"}), 500
+
+
+@app.route("/submit-score", methods=["POST"])
+def submit_score():
+    print("📥 /submit-score endpoint was hit", flush=True)
+    data = request.get_json()
+    print(f"Received data: {data}", flush=True)
+    username = data.get("username", "").strip().lower()
+    time_taken = float(data.get("time", 0))
+    difficulty = data.get("difficulty", "medium").lower()
+    playlist = data.get("playlist", "all").lower()
+
+    # Validate
+    if not username or time_taken <= 0:
+        return jsonify({"error": "Invalid username or time"}), 400
+
+    # Multipliers
+    difficulty_map = {"easy": 1, "medium": 2, "hard": 5}
+    difficulty_multiplier = difficulty_map.get(difficulty, 2)
+    playlist_multiplier = 3 if playlist == "all" else 1
+
+    score = round(time_taken * difficulty_multiplier * playlist_multiplier, 2)
+    print(f"Calculated score: {score} (username: {username}, difficulty: {difficulty}, playlist: {playlist})", flush=True)
+    # File path
+    score_dir = os.path.join(BASE_DIR, "scores")
+    os.makedirs(score_dir, exist_ok=True)
+    score_file = os.path.join(score_dir, f"{username}.txt")
+
+    # Read old scores if file exists
+    previous_scores = []
+    if os.path.isfile(score_file):
+        with open(score_file, "r", encoding="utf-8") as f:
+            previous_scores = f.readlines()
+
+    # Append new score
+    with open(score_file, "a", encoding="utf-8") as f:
+        f.write(f"{score},{difficulty},{playlist},{time_taken:.2f}\n")
+
+    return jsonify({
+        "message": f"Score recorded for {username}.",
+        "score": score,
+        "previous_entries": previous_scores
+    })
+
+@app.route("/leaderboard")
+def leaderboard():
+    score_dir = os.path.join(BACKEND_FOLDER, "scores")
+    if not os.path.exists(score_dir):
+        return jsonify([])
+
+    leaderboard_data = []
+
+    for filename in os.listdir(score_dir):
+        if not filename.endswith(".txt"):
+            continue
+
+        user = filename.replace(".txt", "")
+        filepath = os.path.join(score_dir, filename)
+        print(filepath, flush=True)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                total = 0
+                for line in f:
+                    parts = line.strip().split(",")
+                    if parts:
+                        try:                           
+                            total += float(parts[-1])
+                        except ValueError:
+                            pass
+                leaderboard_data.append({"user": user, "score": round(total, 2)})
+        except Exception as e:
+            print(f"⚠️ Error reading {filename}: {e}", flush=True)
+
+    top3 = sorted(leaderboard_data, key=lambda x: x["score"], reverse=True)[:3]
+    print(f"🏆 Top 3 leaderboard: {top3}", flush=True)
+    return jsonify([{"username": entry["user"], "score": entry["score"]} for entry in top3])
+
+@app.route("/playlists")
+def list_playlists():
+    url_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "urls"))
+    if not os.path.exists(url_dir):
+        return jsonify({"error": "URL directory not found"}), 404
+
+    txt_files = [f for f in os.listdir(url_dir) if f.endswith(".txt")]
+    playlists = [os.path.splitext(f)[0] for f in txt_files]
+    print(f"📂 Available playlists: {playlists}", flush=True)
+    return jsonify(sorted(playlists))
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
