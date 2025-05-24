@@ -435,6 +435,10 @@
       timerDisplay.textContent = `00:${countdown.toString().padStart(2, "0")}`;
     }
 
+    function normalize(str) {
+      return str.toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
     function startCountdown() {
       updateTimerDisplay();
       clearInterval(timerInterval);
@@ -466,6 +470,7 @@
           document.getElementById("guess-title").value = "";
           document.getElementById("guess-year").value = "";
           document.getElementById("guess-feedback").textContent = "";
+          console.log(`🔎 Expected answer (strict): "${currentTrackArtist} - ${currentTrackTitle}" (${currentTrackYear})`);
         });
     }
 
@@ -518,12 +523,17 @@
     });
 
     document.getElementById("submit-guess").addEventListener("click", () => {
-      const titleGuess = document.getElementById("guess-title").value.trim().toLowerCase();
-      const artistGuess = document.getElementById("guess-artist").value.trim().toLowerCase();
+      const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      const titleGuess = normalize(document.getElementById("guess-title").value.trim());
+      const artistGuess = normalize(document.getElementById("guess-artist").value.trim());
       const yearGuess = document.getElementById("guess-year").value.trim();
-      const title = currentTrackTitle.toLowerCase();
-      const artist = currentTrackArtist.toLowerCase();
+
+      const title = normalize(currentTrackTitle);
+      const artist = normalize(currentTrackArtist);
       const year = currentTrackYear;
+
+      console.log(`🧠 Checking:\n  Title: ${title} vs ${titleGuess}\n  Artist: ${artist} vs ${artistGuess}\n  Year: ${year} vs ${yearGuess}`);
 
       let correct = false;
       if (difficulty === "easy") {
@@ -556,6 +566,7 @@
         });
       }
     });
+
     function loadLeaderboard() {
       fetch(`${BASE_URL}/leaderboard`)
         .then(res => res.json())
