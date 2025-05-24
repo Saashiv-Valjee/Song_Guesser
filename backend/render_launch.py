@@ -28,53 +28,48 @@ def serve_frontend(path):
 
 @app.route("/random-url")
 def random_url():
-    print("Fetching random URL...")
-    # Get absolute path to ../data/urls from backend/
+    print("📡 /random-url endpoint was hit (FIRST LINE MODE)", flush=True)
+    playlist = request.args.get("playlist", "all").strip()
+    print(f"🔍 Requested playlist: {playlist}", flush=True)
+
+    # Normalize playlist name
+    if playlist.lower() != "all" and not playlist.lower().endswith(".txt"):
+        playlist += ".txt"
+
     url_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "urls"))
-
     if not os.path.exists(url_dir):
-        return jsonify({"error": f"Directory not found: {url_dir}"}), 404
+        return jsonify({"error": f"URL directory not found: {url_dir}"}), 404
 
-    txt_files = [f for f in os.listdir(url_dir) if f.endswith(".txt")]
-    if not txt_files:
-        return jsonify({"error": "No .txt files found"}), 404
+    # Determine actual file
+    if playlist.lower() == "all":
+        txt_files = [f for f in os.listdir(url_dir) if f.endswith(".txt")]
+        if not txt_files:
+            return jsonify({"error": "No playlists available."}), 404
+        chosen_file = txt_files[0]
+    else:
+        playlist_path = os.path.join(url_dir, playlist)
+        if not os.path.isfile(playlist_path):
+            return jsonify({"error": f"Playlist not found: {playlist}"}), 404
+        chosen_file = playlist
 
-    # Reservoir sampling for file
-    chosen_file = None
-    for i, filename in enumerate(txt_files, start=1):
-        if random.random() < 1 / i:
-            chosen_file = filename
-    print(f"Chosen file: {chosen_file}")
-    # Reservoir sampling for line
+    # Read first valid song line
     selected_url = None
     with open(os.path.join(url_dir, chosen_file), encoding="utf-8") as f:
-        for i, line in enumerate(f, start=1):
-            if "http" not in line:
-                continue
-            if random.random() < 1 / i:
+        for line in f:
+            if "http" in line and "?id=" in line:
                 selected_url = line.strip()
-    print(f"Selected URL: {selected_url}")
+                break
+
     if not selected_url:
-        return jsonify({"error": "No valid URL found"}), 404
+        return jsonify({"error": "No valid Deezer URL in file."}), 404
 
     try:
-        # Extract the URL from the "{song} by {artist}: {url}" line
         raw_url = selected_url.split(": ")[-1].strip()
-        print(f"Raw URL: {raw_url}")
-        # Extract the track ID from the URL
-        # Assumes format like: https://www.deezer.com/track/3134296
-        if "?id=" in raw_url:
-            deezer_id = raw_url.split("?id=")[-1]
-            print(f"Deezer ID: {deezer_id}")
-            return jsonify({"id": deezer_id})
-        else:
-            return jsonify({"error": "Invalid Deezer track URL"}), 400
-
+        deezer_id = raw_url.split("?id=")[-1]
+        print(f"🎶 Loaded: {selected_url} → ID: {deezer_id}", flush=True)
+        return jsonify({"id": deezer_id})
     except Exception as e:
-        return jsonify({"error": f"Failed to parse Deezer ID: {e}"}), 500
-
-
-
+        return jsonify({"error": f"Error parsing Deezer ID: {e}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
