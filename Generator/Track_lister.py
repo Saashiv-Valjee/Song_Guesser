@@ -42,15 +42,14 @@ def get_artist_top_tracks(artist_name, artist_id, genre="Metal", limit=5, out_pa
     return selected
 
 # === Main Logic ===
-#genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo"]
-SONGS_PER_ARTIST = 5
-genres = ["Saashiv"]
+genres = ["Rock", "Metal", "Bollywood", "Saashiv", "Heather"]
+SONGS_PER_ARTIST = 10
 for genre in genres:
-    artist_file = f"data/artists/{genre}.txt".replace(" ", "_")
-    out_path = f"data/songs/{genre}.txt".replace(" ", "_")
+    artist_file = f"../data/artists/{genre}.txt".replace(" ", "_")
+    out_path = f"../data/songs/{genre}.txt".replace(" ", "_")
     
     # Ensure directories exist
-    os.makedirs("songs", exist_ok=True)
+    os.makedirs("../data/songs", exist_ok=True)
 
     # Clear output file
     open(out_path, "w").close()

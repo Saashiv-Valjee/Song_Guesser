@@ -155,7 +155,7 @@ def save_cards_as_pdf(output_pdf=f"{GENRE}_all_cards.pdf"):
 
 
 # Constants
-genres = ["Rock", "Metal", "Bollywood", "Nu Metal", "Emo", "Saashiv", "Heather"]
+genres = ["Rock", "Metal", "Bollywood", "Saashiv", "Heather"]
 for GENRE in genres:
     GENRE = GENRE.replace(" ", "_")
     SIZE = 1063

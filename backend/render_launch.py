@@ -94,11 +94,12 @@ def submit_score():
         return jsonify({"error": "Invalid username or time"}), 400
 
     # Multipliers
-    difficulty_map = {"easy": 1, "medium": 2, "hard": 5}
+    difficulty_map = {"easy": 10, "medium": 30, "hard": 100}
+
     difficulty_multiplier = difficulty_map.get(difficulty, 2)
     playlist_multiplier = 3 if playlist == "all" else 1
 
-    score = round(time_taken * difficulty_multiplier * playlist_multiplier, 2)
+    score = round(time_taken + difficulty_multiplier, 2)
     print(f"Calculated score: {score} (username: {username}, difficulty: {difficulty}, playlist: {playlist})", flush=True)
     # File path
     score_dir = os.path.join(BASE_DIR, "scores")
