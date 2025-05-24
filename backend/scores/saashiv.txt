@@ -1,6 +1,0 @@
-34.0,easy,rock,24.00
-22.0,easy,rock,12.00
-26.0,easy,rock,16.00
-34.0,medium,saashiv,9.00
-43.0,medium,saashiv,18.00
-42.0,medium,saashiv,17.00
