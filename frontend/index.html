@@ -298,12 +298,6 @@
       <select id="playlist-select">
         <option value="">Loading playlists...</option>
       </select>
-
-      <div id="difficulty-buttons">
-        <button class="difficulty" data-level="easy">Easy</button>
-        <button class="difficulty" data-level="medium">Medium</button>
-        <button class="difficulty" data-level="hard">Hard</button>
-      </div>
       <button id="username-submit">Continue</button>
     </div>
   </div>
@@ -393,9 +387,10 @@
 
     function updateGuessInputs() {
       document.getElementById("guess-artist").style.display = "block";
-      document.getElementById("guess-title").style.display = (difficulty !== "easy") ? "block" : "none";
-      document.getElementById("guess-year").style.display = (difficulty === "hard") ? "block" : "none";
+      document.getElementById("guess-title").style.display = "block";
+      document.getElementById("guess-year").style.display = "block";
     }
+
 
     document.querySelectorAll(".difficulty").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -471,6 +466,7 @@
           document.getElementById("guess-year").value = "";
           document.getElementById("guess-feedback").textContent = "";
           console.log(`🔎 Expected answer (strict): "${currentTrackArtist} - ${currentTrackTitle}" (${currentTrackYear})`);
+          document.getElementById("submit-guess").disabled = false;
         });
     }
 
@@ -531,41 +527,56 @@
 
       const title = normalize(currentTrackTitle);
       const artist = normalize(currentTrackArtist);
-      const year = currentTrackYear;
+      const year = parseInt(currentTrackYear);
 
       console.log(`🧠 Checking:\n  Title: ${title} vs ${titleGuess}\n  Artist: ${artist} vs ${artistGuess}\n  Year: ${year} vs ${yearGuess}`);
 
-      let correct = false;
-      if (difficulty === "easy") {
-        correct = artist.includes(artistGuess);
-      } else if (difficulty === "medium") {
-        correct = artist.includes(artistGuess) && title.includes(titleGuess);
-      } else if (difficulty === "hard") {
-        correct = artist.includes(artistGuess) && title.includes(titleGuess) && year === yearGuess;
-      }
+      // Flags for correctness
+      const gotArtist = artist.includes(artistGuess) && artistGuess.length > 0;
+      const gotTitle = title.includes(titleGuess) && titleGuess.length > 0;
+      const yearDiff = !isNaN(year) && !isNaN(parseInt(yearGuess)) ? Math.abs(year - parseInt(yearGuess)) : Infinity;
 
-      document.getElementById("guess-feedback").textContent = correct ? "✅ Correct!" : "❌ Nope! Try again.";
+      // Package what the user got right
+      const difficulty = "custom"; // Placeholder if backend still expects it
+      const scorePayload = {
+        username,
+        time: countdown, // Still sending time for scoring in backend
+        difficulty,
+        playlist,
+        correct_artist: gotArtist,
+        correct_title: gotTitle,
+        year_guess: parseInt(yearGuess),
+        correct_year: year
+      };
 
-      if (correct) {
+      const anyCorrect = gotArtist || gotTitle || yearDiff <= 3;
+
+      document.getElementById("guess-feedback").textContent = anyCorrect
+        ? "✅ Submission received! Scoring..."
+        : "❌ Nope! Try again.";
+
+      if (anyCorrect) {
         fetch(`${BASE_URL}/submit-score`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username,
-            time: countdown,
-            difficulty,
-            playlist
-          })
+          body: JSON.stringify(scorePayload)
         })
         .then(res => res.json())
         .then(data => {
           console.log("🎯 Score submitted:", data);
-        })
-        .catch(err => {
-          console.error("❌ Failed to submit score:", err);
+
+          // Show the correct answer
+          document.getElementById("guess-feedback").textContent =
+            `✅ Correct answer: ${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`;
+          document.getElementById("submit-guess").disabled = true;
+          // Wait 3 seconds, then simulate clicking the random button
+          setTimeout(() => {
+            document.getElementById("random-button").click();
+          }, 3000);
         });
       }
     });
+
 
     function loadLeaderboard() {
       fetch(`${BASE_URL}/leaderboard`)

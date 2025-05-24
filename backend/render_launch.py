@@ -84,42 +84,52 @@ def submit_score():
     print("📥 /submit-score endpoint was hit", flush=True)
     data = request.get_json()
     print(f"Received data: {data}", flush=True)
+
     username = data.get("username", "").strip().lower()
-    time_taken = float(data.get("time", 0))
-    difficulty = data.get("difficulty", "medium").lower()
     playlist = data.get("playlist", "all").lower()
+    time = data.get("time", "all")
+    # Extract frontend-evaluated flags
+    got_artist = data.get("correct_artist", False)
+    got_title = data.get("correct_title", False)
+    guessed_year = data.get("year_guess", None)
+    actual_year = data.get("correct_year", None)
 
-    # Validate
-    if not username or time_taken <= 0:
-        return jsonify({"error": "Invalid username or time"}), 400
+    if not username or actual_year is None:
+        return jsonify({"error": "Invalid submission"}), 400
 
-    # Multipliers
-    difficulty_map = {"easy": 10, "medium": 30, "hard": 100}
+    # --- Score logic ---
+    score = 0
 
-    difficulty_multiplier = difficulty_map.get(difficulty, 2)
-    playlist_multiplier = 3 if playlist == "all" else 1
+    if got_artist or got_title:
+        score += 10
+    if got_artist and got_title:
+        score += 25  # Override if both correct
 
-    score = round(time_taken + difficulty_multiplier, 2)
-    print(f"Calculated score: {score} (username: {username}, difficulty: {difficulty}, playlist: {playlist})", flush=True)
-    # File path
+    # Year bonus
+    if isinstance(guessed_year, int) and isinstance(actual_year, int):
+        year_diff = abs(actual_year - guessed_year)
+        if year_diff == 0:
+            score += 100
+        elif year_diff == 1:
+            score += 50
+        elif year_diff == 2:
+            score += 25
+        elif year_diff == 3:
+            score += 10
+    score = score * (30 - time) / 15
+    print(f"✅ Final score: {score} (user: {username}, playlist: {playlist})", flush=True)
+
+    # Save score
     score_dir = os.path.join(BASE_DIR, "scores")
     os.makedirs(score_dir, exist_ok=True)
     score_file = os.path.join(score_dir, f"{username}.txt")
 
-    # Read old scores if file exists
-    previous_scores = []
-    if os.path.isfile(score_file):
-        with open(score_file, "r", encoding="utf-8") as f:
-            previous_scores = f.readlines()
-
-    # Append new score
     with open(score_file, "a", encoding="utf-8") as f:
-        f.write(f"{score},{difficulty},{playlist},{time_taken:.2f}\n")
+        f.write(f"{score}\n")
 
     return jsonify({
         "message": f"Score recorded for {username}.",
-        "score": score,
-        "previous_entries": previous_scores
+        "score": score
     })
 
 @app.route("/leaderboard")
