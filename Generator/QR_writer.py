@@ -175,31 +175,34 @@ for GENRE in genres:
     os.makedirs(f'{card_PATH}/front', exist_ok=True)
     os.makedirs(f'{card_PATH}/back', exist_ok=True)
 
+    # Shuffle songs and clear directories
     clear_card_dirs()
     songs = parse_songs(f"../data/songs/{GENRE}.txt")
     random.shuffle(songs)
 
-    for i, (artist, title) in enumerate(songs):
-        print(f"🎵 {i+1:02} | {artist} - {title}")
-        track_title, year, deezer_id = get_spotify_and_deezer_info(artist, title)
-        time.sleep(0.5)
-        if not all([track_title, year, deezer_id]):
-            print("❌ Could not fetch complete data.\n")
-            continue
+    # Prepare to write all URLs for this genre
+    os.makedirs("../data/urls", exist_ok=True)
+    with open(f"../data/urls/{GENRE}.txt", "w", encoding="utf-8") as url_file:
 
-        safe_name = f"{i:02}_{re.sub(r'[^a-zA-Z0-9]', '_', artist)}_{re.sub(r'[^a-zA-Z0-9]', '_', track_title)}"
-        front_path = f"{card_PATH}/front/{safe_name}.png"
-        back_path = f"{card_PATH}/back/{safe_name}.png"
+        for i, (artist, title) in enumerate(songs):
+            print(f"🎵 {i+1:02} | {artist} - {title}")
+            track_title, year, deezer_id = get_spotify_and_deezer_info(artist, title)
+            time.sleep(0.5)
 
-        draw_text_card(track_title, artist, year, front_path, GENRE)
-        draw_qr_card(deezer_id, back_path, GENRE)
+            if not all([track_title, year, deezer_id]):
+                print("❌ Could not fetch complete data.\n")
+                continue
 
-        # Save the URL with song metadata
-        os.makedirs("../data/urls", exist_ok=True)
-        url = f"{LOCAL_URL}{deezer_id}"
-        with open(f"../data/urls/{GENRE}.txt", "w", encoding="utf-8") as url_file:
+            # Generate file-safe name
+            safe_name = f"{i:02}_{re.sub(r'[^a-zA-Z0-9]', '_', artist)}_{re.sub(r'[^a-zA-Z0-9]', '_', track_title)}"
+            front_path = f"{card_PATH}/front/{safe_name}.png"
+            back_path = f"{card_PATH}/back/{safe_name}.png"
+
+            # Draw cards
+            draw_text_card(track_title, artist, year, front_path, GENRE)
+            draw_qr_card(deezer_id, back_path, GENRE)
+
+            # Write to URL file
+            url = f"{LOCAL_URL}{deezer_id}"
             url_file.write(f"{track_title} by {artist} in {year}: {url}\n")
-
-        print(f"SELECTED: {track_title} {artist} {year}\n")
-
-    save_cards_as_pdf(f"../data/pdfs/{GENRE}_all_cards.pdf")
+            print(f"SELECTED: {track_title} {artist} {year}\n")
