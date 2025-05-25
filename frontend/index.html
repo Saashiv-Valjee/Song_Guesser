@@ -282,10 +282,12 @@
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 5px;
-      width: 60%;
-      text-align: center;
       width: clamp(10rem, 30vw, 18rem);
+      text-align: center;
+      margin: 0 auto; /* ✅ center horizontally */
+      display: block; /* ✅ ensure it respects margin auto */
     }
+
 
     #guess-container {
       margin-top: 5rem;
