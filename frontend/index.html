@@ -309,22 +309,24 @@
       }
 
       #guess-feedback {
-        min-height: 4.5rem; /* reserve space for 2 lines */
         max-width: 90vw;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
-        box-sizing: border-box;
         line-height: 1.4;
+        font-size: 0.95rem;
+        padding: 0.5rem 0;
+        box-sizing: border-box;
       }
 
       #guess-feedback.correct {
-        font-size: 1rem; /* smaller than before */
+        font-size: 0.95rem;
         color: limegreen;
         text-shadow: 0 0 6px limegreen, 0 0 12px limegreen;
         font-weight: 500;
         line-height: 1.5;
       }
+
 
 
       .guess-field.incorrect {
