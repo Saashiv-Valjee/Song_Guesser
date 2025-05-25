@@ -44,6 +44,11 @@
       padding-top: 2rem;
     }
 
+    #main-wrapper {
+      transform: scale(0.9);
+      transform-origin: top center;
+    }
+
     @font-face {
       font-family: 'Montserrat';
       src: url("assets/Website/Montserrat-Bold.ttf") format("truetype");
@@ -353,6 +358,7 @@
   </style>
 </head>
 <body>
+  <div id="main-wrapper">
   <div id="username-overlay">
     <div id="username-container">
       <h2>Welcome</h2>
@@ -405,7 +411,7 @@
     <button id="submit-guess">Submit Guess</button>
     <div id="guess-feedback"></div>
   </div>
-
+  </div> 
   <script>
     
     const player = document.getElementById("player");
@@ -721,5 +727,6 @@
 
 
   </script>
+
 </body>
 </html>
