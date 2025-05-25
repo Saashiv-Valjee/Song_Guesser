@@ -63,6 +63,19 @@
       align-items: center;
     }
 
+    .guess-field:disabled {
+      background-color: #333;
+      color: #888;
+      cursor: not-allowed;
+    }
+    button:disabled {
+      background-color: #222 !important;
+      color: #777 !important;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+
     #username-container {
       background-color: #111;
       padding: 2rem;
@@ -288,6 +301,51 @@
       color: #ccc;
       font-size: 1rem;
     }
+
+    #guess-feedback.correct {
+      text-align: center;
+      font-size: 1.5rem;
+      color: limegreen;
+      text-shadow: 0 0 8px limegreen, 0 0 16px limegreen;
+      line-height: 1.8;
+    }
+
+    .guess-field.incorrect {
+      border: 2px solid crimson;
+      color: crimson;
+    }
+    .guess-field.incorrect::placeholder {
+      color: crimson;
+    }
+
+
+    button.inactive {
+      pointer-events: none;
+      opacity: 0.5;
+      filter: grayscale(80%);
+    }
+    .guess-field.correct {
+      border: 2px solid limegreen;
+      color: limegreen;
+    }
+    .guess-field.correct::placeholder {
+      color: limegreen;
+    }
+    #random-button.glow {
+      box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
+      animation: glowPulse 1.2s infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      from {
+        box-shadow: 0 0 6px gold, 0 0 12px gold, 0 0 18px gold;
+      }
+      to {
+        box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
+      }
+    }
+
+
   </style>
 </head>
 <body>
@@ -461,13 +519,21 @@
           currentTrackArtist = data.artist?.name || "";
           currentTrackYear = (data.release_date || "").split("-")[0] || "";
           console.log("🎵 Loaded:", `${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`);
+          ["guess-artist", "guess-title", "guess-year"].forEach(id => {
+            const el = document.getElementById(id);
+            el.classList.remove("correct", "incorrect");
+          });
           document.getElementById("guess-artist").value = "";
           document.getElementById("guess-title").value = "";
           document.getElementById("guess-year").value = "";
           document.getElementById("guess-feedback").textContent = "";
           console.log(`🔎 Expected answer (strict): "${currentTrackArtist} - ${currentTrackTitle}" (${currentTrackYear})`);
           document.getElementById("submit-guess").disabled = false;
-        });
+          document.getElementById("guess-artist").disabled = false;
+          document.getElementById("guess-title").disabled = false;
+          document.getElementById("guess-year").disabled = false;
+          document.getElementById("random-button").classList.remove("inactive");
+          });
     }
 
     button.addEventListener("click", () => {
@@ -492,7 +558,9 @@
     });
 
     document.getElementById("random-button").addEventListener("click", () => {
+      document.getElementById("random-button").classList.remove("glow");
       console.log("Random button clicked. Playlist is:", playlist);
+
       fetch(`${BASE_URL}/random-url?playlist=${encodeURIComponent(playlist)}`)
         .then(res => res.json())
         .then(data => {
@@ -517,6 +585,7 @@
           alert("Failed to fetch random song.");
         });
     });
+
 
     document.getElementById("submit-guess").addEventListener("click", () => {
       const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -552,29 +621,60 @@
       const anyCorrect = gotArtist || gotTitle || yearDiff <= 3;
 
       document.getElementById("guess-feedback").textContent = anyCorrect
-        ? "✅ Submission received! Scoring..."
-        : "❌ Nope! Try again.";
+        ? "" : "❌ Nope! Try again.";
 
-      if (anyCorrect) {
-        fetch(`${BASE_URL}/submit-score`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(scorePayload)
-        })
-        .then(res => res.json())
-        .then(data => {
-          console.log("🎯 Score submitted:", data);
+      if (anyCorrect || (!gotArtist && !gotTitle && yearDiff > 3)) {
+        const artistField = document.getElementById("guess-artist");
+        const titleField = document.getElementById("guess-title");
+        const yearField = document.getElementById("guess-year");
 
-          // Show the correct answer
-          document.getElementById("guess-feedback").textContent =
-            `✅ Correct answer: ${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`;
-          document.getElementById("submit-guess").disabled = true;
-          // Wait 3 seconds, then simulate clicking the random button
-          setTimeout(() => {
-            document.getElementById("random-button").click();
-          }, 3000);
-        });
+        if (gotArtist) {
+          artistField.classList.add("correct");
+        } else if (artistField.value.trim() !== "") {
+          artistField.classList.add("incorrect");
+        }
+
+        if (gotTitle) {
+          titleField.classList.add("correct");
+        } else if (titleField.value.trim() !== "") {
+          titleField.classList.add("incorrect");
+        }
+
+        if (yearDiff <= 3) {
+          yearField.classList.add("correct");
+        } else if (yearField.value.trim() !== "") {
+          yearField.classList.add("incorrect");
+        }
+
+
+        const feedback = document.getElementById("guess-feedback");
+        feedback.innerHTML =
+          `${currentTrackArtist}<br>${currentTrackTitle}<br>${currentTrackYear}`;
+        feedback.classList.add("correct");
+
+
+        document.getElementById("submit-guess").disabled = true;
+        document.getElementById("guess-artist").disabled = true;
+        document.getElementById("guess-title").disabled = true;
+        document.getElementById("guess-year").disabled = true;
+        document.getElementById("random-button").classList.add("inactive");
+
+        // Submit only if they got something right
+        if (anyCorrect) {
+          fetch(`${BASE_URL}/submit-score`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(scorePayload)
+          }).then(res => res.json())
+            .then(data => console.log("🎯 Score submitted:", data));
+        }
+
+        // Wait 5 seconds, then go to the next song
+        setTimeout(() => {
+          document.getElementById("random-button").click();
+        }, 10000);
       }
+
     });
 
 
@@ -601,14 +701,19 @@
       loadPlaylists();
       loadLeaderboard();
 
-      // Check if a song ID was passed in the URL
       const params = new URLSearchParams(window.location.search);
       const trackId = params.get("id");
+      const randomButton = document.getElementById("random-button");
+
       if (trackId) {
         console.log("📀 URL contains track ID:", trackId);
         loadTrackById(trackId);
+      } else {
+        // Add glow effect if no song loaded
+        randomButton.classList.add("glow");
       }
     });
+
 
 
   </script>

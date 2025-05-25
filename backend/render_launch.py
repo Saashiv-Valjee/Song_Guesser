@@ -101,8 +101,10 @@ def submit_score():
     score = 0
 
     if got_artist or got_title:
+        print("scoring: got title or artist")
         score += 10
     if got_artist and got_title:
+        print("scoring: got title and artist")
         score += 25  # Override if both correct
 
     # Year bonus
@@ -116,7 +118,7 @@ def submit_score():
             score += 25
         elif year_diff == 3:
             score += 10
-    score = score * (30 - time) / 15
+    
     print(f"✅ Final score: {score} (user: {username}, playlist: {playlist})", flush=True)
 
     # Save score
