@@ -197,7 +197,7 @@ for GENRE in genres:
         # Save the URL with song metadata
         os.makedirs("../data/urls", exist_ok=True)
         url = f"{LOCAL_URL}{deezer_id}"
-        with open(f"../data/urls/{GENRE}.txt", "a", encoding="utf-8") as url_file:
+        with open(f"../data/urls/{GENRE}.txt", "w", encoding="utf-8") as url_file:
             url_file.write(f"{track_title} by {artist} in {year}: {url}\n")
 
         print(f"SELECTED: {track_title} {artist} {year}\n")
