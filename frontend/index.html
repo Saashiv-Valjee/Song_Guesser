@@ -312,7 +312,13 @@
       margin-top: 1rem;
       color: #ccc;
       font-size: 1rem;
+      max-width: 90vw;             /* Prevents overflow on mobile */
+      word-wrap: break-word;       /* Wraps long words */
+      text-align: center;
+      overflow-wrap: break-word;   /* Ensures consistent wrapping */
+      box-sizing: border-box;
     }
+
 
     #guess-feedback.correct {
       text-align: center;
