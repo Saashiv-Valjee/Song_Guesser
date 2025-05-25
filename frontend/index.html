@@ -226,6 +226,7 @@
       opacity: 0;
       animation: pulse 2.5s ease-out infinite;
     }
+
     #playlist-select {
       padding: 0.5rem;
       font-size: 1rem;
@@ -251,12 +252,14 @@
 
     #timer {
       position: absolute;
-      top: -13rem;
-      font-size: clamp(3rem, 7vw, 5rem);
+      top: -13rem; /* adjust to your preference */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(2.5rem, 6vw, 5rem);
       font-weight: bold;
       color: rgb(204, 202, 202);
       text-shadow: 0 0 5px rgba(255,255,255,0.3);
-      margin-bottom: 1rem;
+      z-index: 10;
     }
 
     #badge {
@@ -517,7 +520,6 @@
           player.src = data.preview;
           currentTrackTitle = data.title || "";
           currentTrackArtist = data.artist?.name || "";
-          currentTrackYear = (data.release_date || "").split("-")[0] || "";
           console.log("🎵 Loaded:", `${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`);
           ["guess-artist", "guess-title", "guess-year"].forEach(id => {
             const el = document.getElementById(id);
@@ -566,6 +568,7 @@
         .then(data => {
           if (data.id) {
             window.history.pushState({}, "", `?id=${data.id}`);
+            currentTrackYear = data.year.toString(); 
             player.pause();
             player.removeAttribute("src");
             player.load();

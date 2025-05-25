@@ -39,26 +39,22 @@ def random_url():
     if playlist.lower() != "all" and not playlist.lower().endswith(".txt"):
         playlist += ".txt"
 
-    # Locate directory
     url_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "urls"))
     if not os.path.exists(url_dir):
         return jsonify({"error": "URL directory not found"}), 404
 
-    # Determine playlist file
+    # Choose playlist
     if playlist.lower() == "all":
         txt_files = [f for f in os.listdir(url_dir) if f.endswith(".txt")]
         if not txt_files:
             return jsonify({"error": "No playlist files found"}), 404
         chosen_file = random.choice(txt_files)
     else:
-        playlist_path = os.path.join(url_dir, playlist)
-        if not os.path.isfile(playlist_path):
-            return jsonify({"error": f"Playlist file not found: {playlist}"}), 404
         chosen_file = playlist
 
     print(f"📁 Selected playlist file: {chosen_file}", flush=True)
 
-    # Reservoir sampling: pick one valid line
+    # Reservoir sampling
     selected_url = None
     with open(os.path.join(url_dir, chosen_file), encoding="utf-8") as f:
         for i, line in enumerate(f, start=1):
@@ -68,15 +64,18 @@ def random_url():
                 selected_url = line.strip()
 
     if not selected_url:
-        return jsonify({"error": "No valid Deezer URLs in file"}), 404
+        return jsonify({"error": "No valid URL found"}), 404
 
-    try:
-        raw_url = selected_url.split(": ")[-1].strip()
-        deezer_id = raw_url.split("?id=")[-1]
-        print(f"🎶 Sampled: {selected_url} → ID: {deezer_id}", flush=True)
-        return jsonify({"id": deezer_id})
-    except Exception as e:
-        return jsonify({"error": f"Failed to parse Deezer ID: {e}"}), 500
+    # Extract year and ID
+    import re
+    match = re.search(r"in (\d{4}): .+\?id=(\d+)", selected_url)
+    if not match:
+        return jsonify({"error": "Failed to parse year or ID"}), 500
+
+    year = int(match.group(1))
+    deezer_id = match.group(2)
+    print(f"🎶 Sampled: {selected_url} → ID: {deezer_id} → Year: {year}", flush=True)
+    return jsonify({"id": deezer_id, "year": year})
 
 
 @app.route("/submit-score", methods=["POST"])
