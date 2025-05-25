@@ -1,741 +1,743 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Now Playing</title>
-  <style>
-    html {
-      font-size: 16px;
-    }
-    #leaderboard,
-    #leaderboard-list li {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 2.1rem;
-      margin: 0.3rem 0;
-      text-shadow: 0 0 8px rgb(192, 192, 192);
-    }
-
-    #leaderboard-list li:nth-child(1) {
-      color: gold;
-      font-weight: bold;
-    }
-
-    #leaderboard-list li:nth-child(2) {
-      color: silver;
-      font-weight: bold;
-    }
-
-    #leaderboard-list li:nth-child(3) {
-      color: #cd7f32; /* bronze */
-      font-weight: bold;
-    }
-
-    body {
-      background: radial-gradient(circle, #000 0%, #111 40%, #535353 90%, #838383 100%);
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-      font-family: 'Montserrat', sans-serif;
-      padding-top: 2rem;
-    }
-
-    #main-wrapper {
-      transform: scale(0.9);
-      transform-origin: top center;
-    }
-
-    @font-face {
-      font-family: 'Montserrat';
-      src: url("assets/Website/Montserrat-Bold.ttf") format("truetype");
-      font-weight: bold;
-    }
-
-    #username-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      backdrop-filter: blur(10px);
-      background-color: rgba(0, 0, 0, 0.6);
-      z-index: 9999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .guess-field:disabled {
-      background-color: #333;
-      color: #888;
-      cursor: not-allowed;
-    }
-    button:disabled {
-      background-color: #222 !important;
-      color: #777 !important;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-
-    #username-container {
-      background-color: #111;
-      padding: 2rem;
-      border-radius: 1rem;
-      text-align: center;
-      box-shadow: 0 0 1rem rgba(255, 255, 255, 0.1);
-      width: 300px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #leaderboard {
-      top: 3.75rem;
-      position: relative;
-      margin-top: 3rem;
-      padding-top: 0.5rem;
-      color: white;
-      text-align: center;
-      width: 100%;
-      text-align: center;
-    }
-    
-    #username-container h2 {
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    #username-input,
-    #playlist-input {
-      padding: 0.5rem;
-      font-size: 1rem;
-      width: 100%;
-      border: none;
-      border-radius: 0.5rem;
-      background: #222;
-      color: white;
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    #difficulty-buttons {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 1rem;
-    }
-
-    .difficulty {
-      flex: 1;
-      margin: 0 0.2rem;
-      padding: 0.5rem 0;
-      font-size: 0.9rem;
-      border-radius: 0.5rem;
-      border: 2px solid;
-      background: transparent;
-      cursor: pointer;
-      color: white;
-      transition: background 0.2s ease;
-    }
-
-    .difficulty[data-level="easy"] {
-      border-color: limegreen;
-      color: limegreen;
-    }
-
-    .difficulty[data-level="medium"] {
-      border-color: gold;
-      color: gold;
-    }
-
-    .difficulty[data-level="hard"] {
-      border-color: crimson;
-      color: crimson;
-    }
-
-    .difficulty.active[data-level="easy"] {
-      background: limegreen;
-      color: black;
-    }
-
-    .difficulty.active[data-level="medium"] {
-      background: gold;
-      color: black;
-    }
-
-    .difficulty.active[data-level="hard"] {
-      background: crimson;
-      color: black;
-    }
-
-    #username-submit {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      background: #444;
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .button-wrapper {
-      position: relative;
-      width: clamp(15rem, 30vw, 25rem);
-      height: clamp(15rem, 30vw, 25rem);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #treble-button {
-      width: 100%;
-      height: 100%;
-      background: none;
-      border: none;
-      padding: 0;
-      margin-top: clamp(1rem, 4vh, 2.5rem);
-      cursor: pointer;
-      z-index: 1;
-    }
-
-    #treble-button img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: brightness(90%);
-    }
-
-    .circle-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transform: rotate(90deg);
-    }
-
-    .pulse {
-      position: absolute;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      opacity: 0;
-      animation: pulse 2.5s ease-out infinite;
-    }
-
-    #playlist-select {
-      padding: 0.5rem;
-      font-size: 1rem;
-      width: 100%;
-      border: none;
-      border-radius: 0.5rem;
-      background: #222;
-      color: white;
-      text-align: center;
-      margin-bottom: 1rem;
-      appearance: none;
-    }
-
-    .pulse:nth-child(2) { animation-delay: 0.5s; }
-    .pulse:nth-child(3) { animation-delay: 1.0s; }
-    .pulse:nth-child(4) { animation-delay: 1.5s; }
-    .pulse:nth-child(5) { animation-delay: 2.0s; }
-
-    @keyframes pulse {
-      0% { transform: scale(0); opacity: 1; }
-      100% { transform: scale(2.5); opacity: 0; }
-    }
-
-    #timer {
-      position: absolute;
-      top: -13rem; /* adjust to your preference */
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: clamp(2.5rem, 6vw, 5rem);
-      font-weight: bold;
-      color: rgb(204, 202, 202);
-      text-shadow: 0 0 5px rgba(255,255,255,0.3);
-      z-index: 10;
-    }
-
-    #badge {
-      position: absolute;
-      bottom: 3rem;
-      font-size: 1rem;
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    .guess-field {
-      background: #222;
-      color: white;
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      width: clamp(10rem, 30vw, 18rem);
-      text-align: center;
-      margin: 0 auto; /* ✅ center horizontally */
-      display: block; /* ✅ ensure it respects margin auto */
-    }
-
-
-    #guess-container {
-      margin-top: 5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    #submit-guess {
-      margin-top: 0.5rem;
-      background: #444;
-      color: white;
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #guess-feedback {
-      margin-top: 1rem;
-      color: #ccc;
-      font-size: 1rem;
-      max-width: 90vw;             /* Prevents overflow on mobile */
-      word-wrap: break-word;       /* Wraps long words */
-      text-align: center;
-      overflow-wrap: break-word;   /* Ensures consistent wrapping */
-      box-sizing: border-box;
-    }
-
-
-    #guess-feedback.correct {
-      text-align: center;
-      font-size: 1.5rem;
-      color: limegreen;
-      text-shadow: 0 0 8px limegreen, 0 0 16px limegreen;
-      line-height: 1.8;
-    }
-
-    .guess-field.incorrect {
-      border: 2px solid crimson;
-      color: crimson;
-    }
-    .guess-field.incorrect::placeholder {
-      color: crimson;
-    }
-
-
-    button.inactive {
-      pointer-events: none;
-      opacity: 0.5;
-      filter: grayscale(80%);
-    }
-    .guess-field.correct {
-      border: 2px solid limegreen;
-      color: limegreen;
-    }
-    .guess-field.correct::placeholder {
-      color: limegreen;
-    }
-    #random-button.glow {
-      box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
-      animation: glowPulse 1.2s infinite alternate;
-    }
-
-    @keyframes glowPulse {
-      from {
-        box-shadow: 0 0 6px gold, 0 0 12px gold, 0 0 18px gold;
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Now Playing</title>
+    <style>
+      html {
+        font-size: 16px;
       }
-      to {
+      #leaderboard,
+      #leaderboard-list li {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.1rem;
+        margin: 0.3rem 0;
+        text-shadow: 0 0 8px rgb(192, 192, 192);
+      }
+
+      #leaderboard-list li:nth-child(1) {
+        color: gold;
+        font-weight: bold;
+      }
+
+      #leaderboard-list li:nth-child(2) {
+        color: silver;
+        font-weight: bold;
+      }
+
+      #leaderboard-list li:nth-child(3) {
+        color: #cd7f32; /* bronze */
+        font-weight: bold;
+      }
+
+      body {
+        background: radial-gradient(circle, #000 0%, #111 40%, #535353 90%, #838383 100%);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+        font-family: 'Montserrat', sans-serif;
+        padding-top: 2rem;
+      }
+
+      #main-wrapper {
+        transform: scale(0.9);
+        transform-origin: top center;
+      }
+
+      @font-face {
+        font-family: 'Montserrat';
+        src: url("assets/Website/Montserrat-Bold.ttf") format("truetype");
+        font-weight: bold;
+      }
+
+      #username-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(10px);
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .guess-field:disabled {
+        background-color: #333;
+        color: #888;
+        cursor: not-allowed;
+      }
+      button:disabled {
+        background-color: #222 !important;
+        color: #777 !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+
+      #username-container {
+        background-color: #111;
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 0 1rem rgba(255, 255, 255, 0.1);
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #leaderboard {
+        top: 3.75rem;
+        position: relative;
+        margin-top: 3rem;
+        padding-top: 0.5rem;
+        color: white;
+        text-align: center;
+        width: 100%;
+        text-align: center;
+      }
+      
+      #username-container h2 {
+        color: white;
+        margin-bottom: 1rem;
+      }
+
+      #username-input,
+      #playlist-input {
+        padding: 0.5rem;
+        font-size: 1rem;
+        width: 100%;
+        border: none;
+        border-radius: 0.5rem;
+        background: #222;
+        color: white;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      #difficulty-buttons {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+
+      .difficulty {
+        flex: 1;
+        margin: 0 0.2rem;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+        border: 2px solid;
+        background: transparent;
+        cursor: pointer;
+        color: white;
+        transition: background 0.2s ease;
+      }
+
+      .difficulty[data-level="easy"] {
+        border-color: limegreen;
+        color: limegreen;
+      }
+
+      .difficulty[data-level="medium"] {
+        border-color: gold;
+        color: gold;
+      }
+
+      .difficulty[data-level="hard"] {
+        border-color: crimson;
+        color: crimson;
+      }
+
+      .difficulty.active[data-level="easy"] {
+        background: limegreen;
+        color: black;
+      }
+
+      .difficulty.active[data-level="medium"] {
+        background: gold;
+        color: black;
+      }
+
+      .difficulty.active[data-level="hard"] {
+        background: crimson;
+        color: black;
+      }
+
+      #username-submit {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        background: #444;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .button-wrapper {
+        position: relative;
+        width: clamp(15rem, 30vw, 25rem);
+        height: clamp(15rem, 30vw, 25rem);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #treble-button {
+        width: 100%;
+        height: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: clamp(1rem, 4vh, 2.5rem);
+        cursor: pointer;
+        z-index: 1;
+      }
+
+      #treble-button img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(90%);
+      }
+
+      .circle-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: rotate(90deg);
+      }
+
+      .pulse {
+        position: absolute;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        opacity: 0;
+        animation: pulse 2.5s ease-out infinite;
+      }
+
+      #playlist-select {
+        padding: 0.5rem;
+        font-size: 1rem;
+        width: 100%;
+        border: none;
+        border-radius: 0.5rem;
+        background: #222;
+        color: white;
+        text-align: center;
+        margin-bottom: 1rem;
+        appearance: none;
+      }
+
+      .pulse:nth-child(2) { animation-delay: 0.5s; }
+      .pulse:nth-child(3) { animation-delay: 1.0s; }
+      .pulse:nth-child(4) { animation-delay: 1.5s; }
+      .pulse:nth-child(5) { animation-delay: 2.0s; }
+
+      @keyframes pulse {
+        0% { transform: scale(0); opacity: 1; }
+        100% { transform: scale(2.5); opacity: 0; }
+      }
+
+      #timer {
+        position: absolute;
+        top: -13rem; /* adjust to your preference */
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        font-weight: bold;
+        color: rgb(204, 202, 202);
+        text-shadow: 0 0 5px rgba(255,255,255,0.3);
+        z-index: 10;
+      }
+
+      #badge {
+        position: absolute;
+        bottom: 3rem;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .guess-field {
+        background: #222;
+        color: white;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        width: clamp(10rem, 30vw, 18rem);
+        text-align: center;
+        margin: 0 auto; /* ✅ center horizontally */
+        display: block; /* ✅ ensure it respects margin auto */
+      }
+
+
+      #guess-container {
+        margin-top: 5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      #submit-guess {
+        margin-top: 0.5rem;
+        background: #444;
+        color: white;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      #guess-feedback {
+        min-height: 4.5rem; /* reserve space for 2 lines */
+        max-width: 90vw;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
+        box-sizing: border-box;
+        line-height: 1.4;
+      }
+
+      #guess-feedback.correct {
+        font-size: 1rem; /* smaller than before */
+        color: limegreen;
+        text-shadow: 0 0 6px limegreen, 0 0 12px limegreen;
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+
+      .guess-field.incorrect {
+        border: 2px solid crimson;
+        color: crimson;
+      }
+      .guess-field.incorrect::placeholder {
+        color: crimson;
+      }
+
+
+      button.inactive {
+        pointer-events: none;
+        opacity: 0.5;
+        filter: grayscale(80%);
+      }
+      .guess-field.correct {
+        border: 2px solid limegreen;
+        color: limegreen;
+      }
+      .guess-field.correct::placeholder {
+        color: limegreen;
+      }
+      #random-button.glow {
         box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
+        animation: glowPulse 1.2s infinite alternate;
       }
-    }
+
+      @keyframes glowPulse {
+        from {
+          box-shadow: 0 0 6px gold, 0 0 12px gold, 0 0 18px gold;
+        }
+        to {
+          box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
+        }
+      }
 
 
-  </style>
-</head>
-<body>
-  <div id="main-wrapper">
-  <div id="username-overlay">
-    <div id="username-container">
-      <h2>Welcome</h2>
-      <input type="text" id="username-input" placeholder="Enter your username" />
-      <select id="playlist-select">
-        <option value="">Loading playlists...</option>
-      </select>
-      <button id="username-submit">Continue</button>
+    </style>
+  </head>
+  <body>
+    <div id="main-wrapper">
+    <div id="username-overlay">
+      <div id="username-container">
+        <h2>Welcome</h2>
+        <input type="text" id="username-input" placeholder="Enter your username" />
+        <select id="playlist-select">
+          <option value="">Loading playlists...</option>
+        </select>
+        <button id="username-submit">Continue</button>
+      </div>
     </div>
-  </div>
 
-  <div id="leaderboard" style="margin-top: 3rem; color: white; text-align: center;">
-    <ol id="leaderboard-list" style="list-style: none; padding: 0;"></ol>
-  </div>
-
-  <audio id="player" preload="none"></audio>
-
-  <div class="button-wrapper">
-    <div id="timer">00:30</div>
-    <div class="circle-container" id="circle-container">
-      <div class="pulse"></div>
-      <div class="pulse"></div>
-      <div class="pulse"></div>
-      <div class="pulse"></div>
-      <div class="pulse"></div>
+    <div id="leaderboard" style="margin-top: 3rem; color: white; text-align: center;">
+      <ol id="leaderboard-list" style="list-style: none; padding: 0;"></ol>
     </div>
-    <button id="treble-button">
-      <img src="assets/Website/upscaled_clef.png" alt="Play/Pause" />
-    </button>
-    <button id="random-button" style="
-      margin-top: 2rem;
-      background: #444;
-      color: white;
-      font-size: 1rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      position: absolute;
-      bottom: -4rem;
-    ">
-      Play Random Song
-    </button>
-  </div>
 
-  <div id="guess-container">
-    <input id="guess-artist" class="guess-field" type="text" placeholder="Guess artist..." />
-    <input id="guess-title" class="guess-field" type="text" placeholder="Guess song title..." style="display: none;" />
-    <input id="guess-year" class="guess-field" type="text" placeholder="Guess year..." style="display: none;" />
-    <button id="submit-guess">Submit Guess</button>
-    <div id="guess-feedback"></div>
-  </div>
-  </div> 
-  <script>
-    
-    const player = document.getElementById("player");
-    const button = document.getElementById("treble-button");
-    const circles = document.getElementById("circle-container");
-    const timerDisplay = document.getElementById("timer");
-    const overlay = document.getElementById("username-overlay");
-    const usernameInput = document.getElementById("username-input");
-    const playlistInput = document.getElementById("playlist-input");
-    const usernameSubmit = document.getElementById("username-submit");
-    const BASE_URL = window.location.origin;
-    const playlistSelect = document.getElementById("playlist-select");
-    
-    let username = "";
-    let playlist = "";
-    let difficulty = "medium";
-    let currentTrackTitle = "";
-    let currentTrackArtist = "";
-    let currentTrackYear = "";
-    let isPlaying = false;
-    let countdown = 30;
-    let timerInterval = null;
+    <audio id="player" preload="none"></audio>
 
-    function loadPlaylists() {
-      fetch(`${BASE_URL}/playlists`)
-        .then(res => res.json())
-        .then(playlists => {
-          playlistSelect.innerHTML = '<option value="">Select a playlist</option>';
-          playlists.forEach(pl => {
-            const option = document.createElement("option");
-            option.value = pl;
-            option.textContent = pl.charAt(0).toUpperCase() + pl.slice(1);
-            playlistSelect.appendChild(option);
+    <div class="button-wrapper">
+      <div id="timer">00:30</div>
+      <div class="circle-container" id="circle-container">
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+      </div>
+      <button id="treble-button">
+        <img src="assets/Website/upscaled_clef.png" alt="Play/Pause" />
+      </button>
+      <button id="random-button" style="
+        margin-top: 2rem;
+        background: #444;
+        color: white;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        position: absolute;
+        bottom: -4rem;
+      ">
+        Play Random Song
+      </button>
+    </div>
+
+    <div id="guess-container">
+      <input id="guess-artist" class="guess-field" type="text" placeholder="Guess artist..." />
+      <input id="guess-title" class="guess-field" type="text" placeholder="Guess song title..." style="display: none;" />
+      <input id="guess-year" class="guess-field" type="text" placeholder="Guess year..." style="display: none;" />
+      <button id="submit-guess">Submit Guess</button>
+      <div id="guess-feedback"></div>
+    </div>
+    </div> 
+    <script>
+      
+      const player = document.getElementById("player");
+      const button = document.getElementById("treble-button");
+      const circles = document.getElementById("circle-container");
+      const timerDisplay = document.getElementById("timer");
+      const overlay = document.getElementById("username-overlay");
+      const usernameInput = document.getElementById("username-input");
+      const playlistInput = document.getElementById("playlist-input");
+      const usernameSubmit = document.getElementById("username-submit");
+      const BASE_URL = window.location.origin;
+      const playlistSelect = document.getElementById("playlist-select");
+      
+      let username = "";
+      let playlist = "";
+      let difficulty = "medium";
+      let currentTrackTitle = "";
+      let currentTrackArtist = "";
+      let currentTrackYear = "";
+      let isPlaying = false;
+      let countdown = 30;
+      let timerInterval = null;
+
+      function loadPlaylists() {
+        fetch(`${BASE_URL}/playlists`)
+          .then(res => res.json())
+          .then(playlists => {
+            playlistSelect.innerHTML = '<option value="">Select a playlist</option>';
+            playlists.forEach(pl => {
+              const option = document.createElement("option");
+              option.value = pl;
+              option.textContent = pl.charAt(0).toUpperCase() + pl.slice(1);
+              playlistSelect.appendChild(option);
+            });
+          })
+          .catch(err => {
+            console.error("❌ Failed to load playlists:", err);
+            playlistSelect.innerHTML = '<option value="">Failed to load</option>';
           });
-        })
-        .catch(err => {
-          console.error("❌ Failed to load playlists:", err);
-          playlistSelect.innerHTML = '<option value="">Failed to load</option>';
+      }
+
+      function updateGuessInputs() {
+        document.getElementById("guess-artist").style.display = "block";
+        document.getElementById("guess-title").style.display = "block";
+        document.getElementById("guess-year").style.display = "block";
+      }
+
+
+      document.querySelectorAll(".difficulty").forEach(btn => {
+        btn.addEventListener("click", () => {
+          difficulty = btn.dataset.level;
+          document.querySelectorAll(".difficulty").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          updateGuessInputs();
         });
-    }
+      });
 
-    function updateGuessInputs() {
-      document.getElementById("guess-artist").style.display = "block";
-      document.getElementById("guess-title").style.display = "block";
-      document.getElementById("guess-year").style.display = "block";
-    }
+      usernameSubmit.addEventListener("click", () => {
+        const u = usernameInput.value.trim();
+        const p = document.getElementById("playlist-select").value.trim();
 
+        if (!u || !p || !difficulty) return alert("Please complete all fields.");
+        username = u;
+        playlist = p;
+        console.log("Saved playlist value:", playlist);
 
-    document.querySelectorAll(".difficulty").forEach(btn => {
-      btn.addEventListener("click", () => {
-        difficulty = btn.dataset.level;
-        document.querySelectorAll(".difficulty").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
+        overlay.style.display = "none";
         updateGuessInputs();
       });
-    });
 
-    usernameSubmit.addEventListener("click", () => {
-      const u = usernameInput.value.trim();
-      const p = document.getElementById("playlist-select").value.trim();
+      function getRandomHSLA() {
+        const hue = Math.floor(Math.random() * 360);
+        return `hsla(${hue}, 100%, 50%, 0.4)`;
+      }
 
-      if (!u || !p || !difficulty) return alert("Please complete all fields.");
-      username = u;
-      playlist = p;
-      console.log("Saved playlist value:", playlist);
-
-      overlay.style.display = "none";
-      updateGuessInputs();
-    });
-
-    function getRandomHSLA() {
-      const hue = Math.floor(Math.random() * 360);
-      return `hsla(${hue}, 100%, 50%, 0.4)`;
-    }
-
-    document.querySelectorAll(".pulse").forEach(p => {
-      p.style.background = getRandomHSLA();
-      p.addEventListener("animationiteration", () => {
+      document.querySelectorAll(".pulse").forEach(p => {
         p.style.background = getRandomHSLA();
+        p.addEventListener("animationiteration", () => {
+          p.style.background = getRandomHSLA();
+        });
       });
-    });
 
-    function updateTimerDisplay() {
-      timerDisplay.textContent = `00:${countdown.toString().padStart(2, "0")}`;
-    }
+      function updateTimerDisplay() {
+        timerDisplay.textContent = `00:${countdown.toString().padStart(2, "0")}`;
+      }
 
-    function normalize(str) {
-      return str.toLowerCase().replace(/[^a-z0-9]/g, "");
-    }
+      function normalize(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]/g, "");
+      }
 
-    function startCountdown() {
-      updateTimerDisplay();
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        countdown--;
+      function startCountdown() {
         updateTimerDisplay();
-        if (countdown <= 0) {
-          clearInterval(timerInterval);
-          player.pause();
-        }
-      }, 1000);
-    }
-
-    function stopCountdown() {
-      clearInterval(timerInterval);
-    }
-
-    function loadTrackById(id) {
-      fetch(`${BASE_URL}/deezer-track?id=${id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.preview) return;
-          player.src = data.preview;
-          currentTrackTitle = data.title || "";
-          currentTrackArtist = data.artist?.name || "";
-          console.log("🎵 Loaded:", `${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`);
-          ["guess-artist", "guess-title", "guess-year"].forEach(id => {
-            const el = document.getElementById(id);
-            el.classList.remove("correct", "incorrect");
-          });
-          document.getElementById("guess-artist").value = "";
-          document.getElementById("guess-title").value = "";
-          document.getElementById("guess-year").value = "";
-          document.getElementById("guess-feedback").textContent = "";
-          console.log(`🔎 Expected answer (strict): "${currentTrackArtist} - ${currentTrackTitle}" (${currentTrackYear})`);
-          document.getElementById("submit-guess").disabled = false;
-          document.getElementById("guess-artist").disabled = false;
-          document.getElementById("guess-title").disabled = false;
-          document.getElementById("guess-year").disabled = false;
-          document.getElementById("random-button").classList.remove("inactive");
-          });
-    }
-
-    button.addEventListener("click", () => {
-      isPlaying ? player.pause() : player.play();
-    });
-
-    player.addEventListener("play", () => {
-      isPlaying = true;
-      circles.style.display = "flex";
-      startCountdown();
-    });
-
-    player.addEventListener("pause", () => {
-      isPlaying = false;
-      circles.style.display = "none";
-      stopCountdown();
-    });
-
-    player.addEventListener("ended", () => {
-      countdown = 30;
-      updateTimerDisplay();
-    });
-
-    document.getElementById("random-button").addEventListener("click", () => {
-      document.getElementById("random-button").classList.remove("glow");
-      console.log("Random button clicked. Playlist is:", playlist);
-
-      fetch(`${BASE_URL}/random-url?playlist=${encodeURIComponent(playlist)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.id) {
-            window.history.pushState({}, "", `?id=${data.id}`);
-            currentTrackYear = data.year.toString(); 
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          countdown--;
+          updateTimerDisplay();
+          if (countdown <= 0) {
+            clearInterval(timerInterval);
             player.pause();
-            player.removeAttribute("src");
-            player.load();
-            isPlaying = false;
-            circles.style.display = "none";
-            stopCountdown();
-            countdown = 30;
-            updateTimerDisplay();
-            loadTrackById(data.id);
-            loadLeaderboard();
-          } else {
-            alert("No random song found.");
           }
-        })
-        .catch(err => {
-          console.error(err);
-          alert("Failed to fetch random song.");
-        });
-    });
-
-
-    document.getElementById("submit-guess").addEventListener("click", () => {
-      const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-      const titleGuess = normalize(document.getElementById("guess-title").value.trim());
-      const artistGuess = normalize(document.getElementById("guess-artist").value.trim());
-      const yearGuess = document.getElementById("guess-year").value.trim();
-
-      const title = normalize(currentTrackTitle);
-      const artist = normalize(currentTrackArtist);
-      const year = parseInt(currentTrackYear);
-
-      console.log(`🧠 Checking:\n  Title: ${title} vs ${titleGuess}\n  Artist: ${artist} vs ${artistGuess}\n  Year: ${year} vs ${yearGuess}`);
-
-      // Flags for correctness
-      const gotArtist = artist.includes(artistGuess) && artistGuess.length > 0;
-      const gotTitle = title.includes(titleGuess) && titleGuess.length > 0;
-      const yearDiff = !isNaN(year) && !isNaN(parseInt(yearGuess)) ? Math.abs(year - parseInt(yearGuess)) : Infinity;
-
-      // Package what the user got right
-      const difficulty = "custom"; // Placeholder if backend still expects it
-      const scorePayload = {
-        username,
-        time: countdown, // Still sending time for scoring in backend
-        difficulty,
-        playlist,
-        correct_artist: gotArtist,
-        correct_title: gotTitle,
-        year_guess: parseInt(yearGuess),
-        correct_year: year
-      };
-
-      const anyCorrect = gotArtist || gotTitle || yearDiff <= 3;
-
-      document.getElementById("guess-feedback").textContent = anyCorrect
-        ? "" : "❌ Nope! Try again.";
-
-      if (anyCorrect || (!gotArtist && !gotTitle && yearDiff > 3)) {
-        const artistField = document.getElementById("guess-artist");
-        const titleField = document.getElementById("guess-title");
-        const yearField = document.getElementById("guess-year");
-
-        if (gotArtist) {
-          artistField.classList.add("correct");
-        } else if (artistField.value.trim() !== "") {
-          artistField.classList.add("incorrect");
-        }
-
-        if (gotTitle) {
-          titleField.classList.add("correct");
-        } else if (titleField.value.trim() !== "") {
-          titleField.classList.add("incorrect");
-        }
-
-        if (yearDiff <= 3) {
-          yearField.classList.add("correct");
-        } else if (yearField.value.trim() !== "") {
-          yearField.classList.add("incorrect");
-        }
-
-
-        const feedback = document.getElementById("guess-feedback");
-        feedback.innerHTML =
-          `${currentTrackArtist}<br>${currentTrackTitle}<br>${currentTrackYear}`;
-        feedback.classList.add("correct");
-
-
-        document.getElementById("submit-guess").disabled = true;
-        document.getElementById("guess-artist").disabled = true;
-        document.getElementById("guess-title").disabled = true;
-        document.getElementById("guess-year").disabled = true;
-        document.getElementById("random-button").classList.add("inactive");
-
-        // Submit only if they got something right
-        if (anyCorrect) {
-          fetch(`${BASE_URL}/submit-score`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(scorePayload)
-          }).then(res => res.json())
-            .then(data => console.log("🎯 Score submitted:", data));
-        }
-
-        // Wait 5 seconds, then go to the next song
-        setTimeout(() => {
-          document.getElementById("random-button").click();
-        }, 10000);
+        }, 1000);
       }
 
-    });
+      function stopCountdown() {
+        clearInterval(timerInterval);
+      }
 
+      function loadTrackById(id) {
+        fetch(`${BASE_URL}/deezer-track?id=${id}`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.preview) return;
+            player.src = data.preview;
+            currentTrackTitle = data.title || "";
+            currentTrackArtist = data.artist?.name || "";
+            console.log("🎵 Loaded:", `${currentTrackArtist} - ${currentTrackTitle} (${currentTrackYear})`);
+            ["guess-artist", "guess-title", "guess-year"].forEach(id => {
+              const el = document.getElementById(id);
+              el.classList.remove("correct", "incorrect");
+            });
+            document.getElementById("guess-artist").value = "";
+            document.getElementById("guess-title").value = "";
+            document.getElementById("guess-year").value = "";
+            document.getElementById("guess-feedback").textContent = "";
+            console.log(`🔎 Expected answer (strict): "${currentTrackArtist} - ${currentTrackTitle}" (${currentTrackYear})`);
+            document.getElementById("submit-guess").disabled = false;
+            document.getElementById("guess-artist").disabled = false;
+            document.getElementById("guess-title").disabled = false;
+            document.getElementById("guess-year").disabled = false;
+            document.getElementById("random-button").classList.remove("inactive");
+            });
+      }
 
-    function loadLeaderboard() {
-      fetch(`${BASE_URL}/leaderboard`)
-        .then(res => res.json())
-        .then(data => {
-          const list = document.getElementById("leaderboard-list");
-          list.innerHTML = "";
-          data.slice(0, 3).forEach((entry, i) => {
-            const li = document.createElement("li");
-            li.textContent = `${entry.username}: ${entry.score}`;
-            list.appendChild(li);
+      button.addEventListener("click", () => {
+        isPlaying ? player.pause() : player.play();
+      });
+
+      player.addEventListener("play", () => {
+        isPlaying = true;
+        circles.style.display = "flex";
+        startCountdown();
+      });
+
+      player.addEventListener("pause", () => {
+        isPlaying = false;
+        circles.style.display = "none";
+        stopCountdown();
+      });
+
+      player.addEventListener("ended", () => {
+        countdown = 30;
+        updateTimerDisplay();
+      });
+
+      document.getElementById("random-button").addEventListener("click", () => {
+        document.getElementById("random-button").classList.remove("glow");
+        console.log("Random button clicked. Playlist is:", playlist);
+
+        fetch(`${BASE_URL}/random-url?playlist=${encodeURIComponent(playlist)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.id) {
+              window.history.pushState({}, "", `?id=${data.id}`);
+              currentTrackYear = data.year.toString(); 
+              player.pause();
+              player.removeAttribute("src");
+              player.load();
+              isPlaying = false;
+              circles.style.display = "none";
+              stopCountdown();
+              countdown = 30;
+              updateTimerDisplay();
+              loadTrackById(data.id);
+              loadLeaderboard();
+            } else {
+              alert("No random song found.");
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            alert("Failed to fetch random song.");
           });
-
-        })
-        .catch(err => {
-          console.error("❌ Failed to load leaderboard:", err);
-        });
-    }
+      });
 
 
-    window.addEventListener("DOMContentLoaded", () => {
-      loadPlaylists();
-      loadLeaderboard();
+      document.getElementById("submit-guess").addEventListener("click", () => {
+        const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-      const params = new URLSearchParams(window.location.search);
-      const trackId = params.get("id");
-      const randomButton = document.getElementById("random-button");
+        const titleGuess = normalize(document.getElementById("guess-title").value.trim());
+        const artistGuess = normalize(document.getElementById("guess-artist").value.trim());
+        const yearGuess = document.getElementById("guess-year").value.trim();
 
-      if (trackId) {
-        console.log("📀 URL contains track ID:", trackId);
-        loadTrackById(trackId);
-      } else {
-        // Add glow effect if no song loaded
-        randomButton.classList.add("glow");
+        const title = normalize(currentTrackTitle);
+        const artist = normalize(currentTrackArtist);
+        const year = parseInt(currentTrackYear);
+
+        console.log(`🧠 Checking:\n  Title: ${title} vs ${titleGuess}\n  Artist: ${artist} vs ${artistGuess}\n  Year: ${year} vs ${yearGuess}`);
+
+        // Flags for correctness
+        const gotArtist = artist.includes(artistGuess) && artistGuess.length > 0;
+        const gotTitle = title.includes(titleGuess) && titleGuess.length > 0;
+        const yearDiff = !isNaN(year) && !isNaN(parseInt(yearGuess)) ? Math.abs(year - parseInt(yearGuess)) : Infinity;
+
+        // Package what the user got right
+        const difficulty = "custom"; // Placeholder if backend still expects it
+        const scorePayload = {
+          username,
+          time: countdown, // Still sending time for scoring in backend
+          difficulty,
+          playlist,
+          correct_artist: gotArtist,
+          correct_title: gotTitle,
+          year_guess: parseInt(yearGuess),
+          correct_year: year
+        };
+
+        const anyCorrect = gotArtist || gotTitle || yearDiff <= 3;
+
+        document.getElementById("guess-feedback").textContent = anyCorrect
+          ? "" : "❌ Nope! Try again.";
+
+        if (anyCorrect || (!gotArtist && !gotTitle && yearDiff > 3)) {
+          const artistField = document.getElementById("guess-artist");
+          const titleField = document.getElementById("guess-title");
+          const yearField = document.getElementById("guess-year");
+
+          if (gotArtist) {
+            artistField.classList.add("correct");
+          } else if (artistField.value.trim() !== "") {
+            artistField.classList.add("incorrect");
+          }
+
+          if (gotTitle) {
+            titleField.classList.add("correct");
+          } else if (titleField.value.trim() !== "") {
+            titleField.classList.add("incorrect");
+          }
+
+          if (yearDiff <= 3) {
+            yearField.classList.add("correct");
+          } else if (yearField.value.trim() !== "") {
+            yearField.classList.add("incorrect");
+          }
+
+
+          const feedback = document.getElementById("guess-feedback");
+          feedback.innerHTML = `
+            <div>${currentTrackArtist}</div>
+            <div>${currentTrackTitle}</div>
+            <div>${currentTrackYear}</div>`;
+
+          feedback.classList.add("correct");
+
+
+          document.getElementById("submit-guess").disabled = true;
+          document.getElementById("guess-artist").disabled = true;
+          document.getElementById("guess-title").disabled = true;
+          document.getElementById("guess-year").disabled = true;
+          document.getElementById("random-button").classList.add("inactive");
+
+          // Submit only if they got something right
+          if (anyCorrect) {
+            fetch(`${BASE_URL}/submit-score`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(scorePayload)
+            }).then(res => res.json())
+              .then(data => console.log("🎯 Score submitted:", data));
+          }
+
+          // Wait 5 seconds, then go to the next song
+          setTimeout(() => {
+            document.getElementById("random-button").click();
+          }, 10000);
+        }
+
+      });
+
+
+      function loadLeaderboard() {
+        fetch(`${BASE_URL}/leaderboard`)
+          .then(res => res.json())
+          .then(data => {
+            const list = document.getElementById("leaderboard-list");
+            list.innerHTML = "";
+            data.slice(0, 3).forEach((entry, i) => {
+              const li = document.createElement("li");
+              li.textContent = `${entry.username}: ${entry.score}`;
+              list.appendChild(li);
+            });
+
+          })
+          .catch(err => {
+            console.error("❌ Failed to load leaderboard:", err);
+          });
       }
-    });
+
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadPlaylists();
+        loadLeaderboard();
+
+        const params = new URLSearchParams(window.location.search);
+        const trackId = params.get("id");
+        const randomButton = document.getElementById("random-button");
+
+        if (trackId) {
+          console.log("📀 URL contains track ID:", trackId);
+          loadTrackById(trackId);
+        } else {
+          // Add glow effect if no song loaded
+          randomButton.classList.add("glow");
+        }
+      });
 
 
 
-  </script>
+    </script>
 
-</body>
-</html>
+  </body>
+  </html>
