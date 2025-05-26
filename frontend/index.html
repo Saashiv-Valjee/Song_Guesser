@@ -288,6 +288,17 @@
         display: block; /* ✅ ensure it respects margin auto */
       }
 
+      #result-container h2 {
+        color: limegreen;
+        text-shadow: 0 0 8px limegreen, 0 0 16px limegreen, 0 0 24px limegreen;
+      }
+      #result-artist,
+      #result-title,
+      #result-year {
+        color: limegreen;
+        text-shadow: 0 0 6px limegreen, 0 0 12px limegreen, 0 0 18px limegreen;
+        font-weight: 500;
+      }
 
       #guess-container {
         margin-top: 5rem;
@@ -306,17 +317,6 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
-      }
-
-      #guess-feedback {
-        max-width: 90vw;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        text-align: center;
-        line-height: 1.4;
-        font-size: 0.95rem;
-        padding: 0.5rem 0;
-        box-sizing: border-box;
       }
 
       #guess-feedback.correct {
@@ -363,6 +363,46 @@
           box-shadow: 0 0 12px gold, 0 0 24px gold, 0 0 36px gold;
         }
       }
+      #result-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9998;
+        pointer-events: none; /* allow clicks to pass through */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #result-container {
+        pointer-events: auto; /* make modal clickable */
+        background-color: #111;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 0 1rem rgba(255, 255, 255, 0.1);
+        color: white;
+        text-align: center;
+        width: clamp(250px, 80vw, 500px);
+        max-height: 90vh;
+        overflow-y: auto;
+        opacity: 0.95;
+      }
+
+      #result-details > div {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      #next-timer {
+        font-size: 0.95rem;
+        color: #ccc;
+        margin-top: 1.5rem;
+      }
+
 
 
     </style>
@@ -640,9 +680,6 @@
 
         const anyCorrect = gotArtist || gotTitle || yearDiff <= 3;
 
-        document.getElementById("guess-feedback").textContent = anyCorrect
-          ? "" : "❌ Nope! Try again.";
-
         if (anyCorrect || (!gotArtist && !gotTitle && yearDiff > 3)) {
           const artistField = document.getElementById("guess-artist");
           const titleField = document.getElementById("guess-title");
@@ -665,16 +702,25 @@
           } else if (yearField.value.trim() !== "") {
             yearField.classList.add("incorrect");
           }
+          
+          document.getElementById("result-artist").textContent = currentTrackArtist;
+          document.getElementById("result-title").textContent = currentTrackTitle;
+          document.getElementById("result-year").textContent = currentTrackYear;
+          document.getElementById("result-overlay").style.display = "flex";
 
+          let nextSongCountdown = 10;
+          const nextTimerSpan = document.getElementById("next-timer-count");
+          nextTimerSpan.textContent = nextSongCountdown;
 
-          const feedback = document.getElementById("guess-feedback");
-          feedback.innerHTML = `
-            <div>${currentTrackArtist}</div>
-            <div>${currentTrackTitle}</div>
-            <div>${currentTrackYear}</div>`;
-
-          feedback.classList.add("correct");
-
+          const nextTimer = setInterval(() => {
+            nextSongCountdown--;
+            nextTimerSpan.textContent = nextSongCountdown;
+            if (nextSongCountdown <= 0) {
+              clearInterval(nextTimer);
+              document.getElementById("result-overlay").style.display = "none";
+              document.getElementById("random-button").click();
+            }
+          }, 1000);
 
           document.getElementById("submit-guess").disabled = true;
           document.getElementById("guess-artist").disabled = true;
@@ -740,6 +786,17 @@
 
 
     </script>
+    <div id="result-overlay" style="display: none;">
+    <div id="result-container">
+      <h2>Correct Answer</h2>
+      <div id="result-details">
+        <div id="result-artist"></div>
+        <div id="result-title"></div>
+        <div id="result-year"></div>
+      </div>
+      <div id="next-timer">Next song in <span id="next-timer-count">10</span> seconds...</div>
+    </div>
+  </div>
 
   </body>
   </html>
