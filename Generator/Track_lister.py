@@ -11,26 +11,42 @@ def search_artist_id(name):
     print(f"❌ Artist '{name}' not found.")
     return None
 
+
 def is_clean(title):
-    blacklist = ["remix", "remastered", "live", "edit", "acoustic", "version", "karaoke", "tribute", "demo", "remaster"]
+    blacklist = ["mix", "cover" ,"remix", "remastered", "live", "edit", "acoustic", "version", "karaoke", "tribute", "demo", "remaster"]
     title_lower = title.lower()
-    # Use word boundaries to avoid partial matches (e.g., "live" in "deliver")
-    return all(not re.search(rf"\b{re.escape(b)}\b", title_lower) for b in blacklist)
+    for word in blacklist:
+        if re.search(rf"\b{re.escape(word)}\b", title_lower):
+            print(f"⛔ Removing song due to '{word}' found in title: {title}")
+            return False
+    return True
+
 
 def get_artist_top_tracks(artist_name, artist_id, genre="Metal", limit=5, out_path=None):
-    url = f"https://api.deezer.com/artist/{artist_id}/top?limit=15"  # fetch more to ensure 5 clean ones
-    res = requests.get(url).json()
+    clean_tracks = []
+    index = 0
+    batch_size = 25  # Deezer allows up to 100 but smaller batches are safer
 
-    if not res.get("data"):
-        print(f"❌ No top tracks found for {artist_name}.")
-        return []
+    while len(clean_tracks) < limit and index < 100:
+        url = f"https://api.deezer.com/artist/{artist_id}/top?limit={batch_size}&index={index}"
+        res = requests.get(url).json()
 
-    clean_tracks = [track for track in res["data"] if is_clean(track["title"])]
-    selected = clean_tracks[:limit]
+        if not res.get("data"):
+            break  # No more tracks to fetch
 
-    if not selected:
+        for track in res["data"]:
+            if is_clean(track["title"]):
+                clean_tracks.append(track)
+                if len(clean_tracks) == limit:
+                    break
+
+        index += batch_size
+
+    if not clean_tracks:
         print(f"⚠️ No clean tracks for {artist_name}.")
         return []
+
+    selected = clean_tracks[:limit]
 
     if out_path:
         with open(out_path, "a", encoding="utf-8") as f:
@@ -40,6 +56,7 @@ def get_artist_top_tracks(artist_name, artist_id, genre="Metal", limit=5, out_pa
                 f.write(line + "\n")
 
     return selected
+
 
 # === Main Logic ===
 genres = ["Rock", "Metal", "Bollywood", "Saashiv", "Heather"]

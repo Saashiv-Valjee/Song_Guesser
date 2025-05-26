@@ -115,9 +115,20 @@ def draw_qr_card(track_id, output_path, genre):
 
     bg.save(output_path)
 
-def get_spotify_and_deezer_info(artist, title):
+def get_spotify_and_deezer_info(artist, title, retries=3, delay=2):
     query = f"track:{title} artist:{artist}"
-    results = sp.search(q=query, type="track", limit=1)
+    
+    for attempt in range(retries):
+        try:
+            results = sp.search(q=query, type="track", limit=1)
+            break
+        except requests.exceptions.ReadTimeout:
+            print(f"⚠️ Spotify request timed out (attempt {attempt+1}/{retries}). Retrying...")
+            time.sleep(delay)
+    else:
+        print(f"❌ Failed to retrieve Spotify info for {artist} - {title} after {retries} attempts.")
+        return None, None, None
+
     if not results['tracks']['items']:
         return None, None, None
 
@@ -126,10 +137,21 @@ def get_spotify_and_deezer_info(artist, title):
     release_date = track['album']['release_date']
     year = release_date.split("-")[0]
 
-    # Fetch Deezer ID
+    # Now get Deezer ID with retry
     deezer_query = f"{artist} - {title}"
     search_url = f"https://api.deezer.com/search?q={quote_plus(deezer_query)}"
-    res = requests.get(search_url).json()
+
+    for attempt in range(retries):
+        try:
+            res = requests.get(search_url, timeout=5).json()
+            break
+        except requests.exceptions.ReadTimeout:
+            print(f"⚠️ Deezer request timed out (attempt {attempt+1}/{retries}). Retrying...")
+            time.sleep(delay)
+    else:
+        print(f"❌ Failed to retrieve Deezer info for {artist} - {title}.")
+        return None, None, None
+
     deezer_id = res['data'][0]['id'] if res.get('data') else None
 
     return track_title, year, deezer_id
@@ -187,7 +209,7 @@ for GENRE in genres:
         for i, (artist, title) in enumerate(songs):
             print(f"🎵 {i+1:02} | {artist} - {title}")
             track_title, year, deezer_id = get_spotify_and_deezer_info(artist, title)
-            time.sleep(0.5)
+            time.sleep(1)
 
             if not all([track_title, year, deezer_id]):
                 print("❌ Could not fetch complete data.\n")
