@@ -13,10 +13,10 @@ def search_artist_id(name):
 
 
 def is_clean(title):
-    blacklist = ["mix", "cover" ,"remix", "remastered", "live", "edit", "acoustic", "version", "karaoke", "tribute", "demo", "remaster"]
+    blacklist = ["feat.", "mix", "cover" ,"remix", "remastered", "live", "edit", "acoustic", "version", "karaoke", "tribute", "demo", "remaster"]
     title_lower = title.lower()
     for word in blacklist:
-        if re.search(rf"\b{re.escape(word)}\b", title_lower):
+        if word in title_lower:
             print(f"⛔ Removing song due to '{word}' found in title: {title}")
             return False
     return True
